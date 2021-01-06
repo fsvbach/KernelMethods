@@ -16,11 +16,12 @@ Z = load_test_data()
 
 P = []
 for x,y,z in zip(X,Y,Z):
-    K_train = kernel_matrix(dumb_kernel, x, x)
-    K_test  = kernel_matrix(dumb_kernel, z, x)
+    K_train = kernel_matrix(weighted_kernel, x, x)
+    K_test  = kernel_matrix(weighted_kernel, z, x)
     
     model = SVM()
     pred = model.base_model(K_train, y, K_test)
     P.append( pred )
+    print('ready')
     
 save_predictions(P)
