@@ -7,7 +7,7 @@ Created on Tue Jan  5 15:35:55 2021
 """
 
 import os
-os.chdir("..")
+#os.chdir("..")
 
 import numpy as np
 from Data.loader import load_train_labels
@@ -15,16 +15,19 @@ from Methods.SVM import SVM
 from weighted_kernel.kernel import WDKernel
 import matplotlib.pyplot as plt
 
+K = WDKernel()
 Y = load_train_labels()
-    
+Ktr, Kte = K.load()
+
 def create_crossval_plot():
     predictions = []
     cross_valid = 10.0**np.arange(-1,4)
     
-    for x,y,z in zip(X,Y,Z):
-        K_train = gaussian(x, x)    
+    for x,y,z in zip(Ktr,Y,Kte):
+        x /= np.max(x)
+        
         model  = SVM()
-        scores = model.cross_validation(K_train, y, C_range=cross_valid)
+        scores = model.cross_validation(x, y, C_range=cross_valid)
         print(f'finished dataset: {scores}')
         predictions.append(scores)
         #K_test  = kernel_matrix(gaussian, z, x)
@@ -36,7 +39,7 @@ def create_crossval_plot():
     plt.xlabel('C')
     plt.ylabel('percent')
     plt.legend()
-    plt.savefig('base_kernel/Cross Validation', dpi=300)
+    plt.savefig('weighted_kernel/Cross Validation', dpi=300)
     plt.show()
 
-# create_crossval_plot()
+create_crossval_plot()

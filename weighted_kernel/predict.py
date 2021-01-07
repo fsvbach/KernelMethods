@@ -7,7 +7,7 @@ Created on Thu Jan  7 11:23:33 2021
 """
 
 import os
-os.chdir("..")
+#os.chdir("..")
 
 import numpy as np
 from Data.loader import *
@@ -16,16 +16,21 @@ from Methods.SVM import SVM
 
 
 Y = load_train_labels()
+K = WDKernel()
+Ktr, Kte = K.load()
+
 
 predictions = []
-
-for x,y,z in zip(X,Y,Z):
-    K_train = gaussian(x, x)   
-    K_test  = gaussian(z, x)
+    
+for x,y,z in zip(Ktr,Y,Kte):
+    norm = np.max(x)
+    x /= norm
+    z /= norm
+    
     model  = SVM()
-    model.fit(K_train, y, C=1000)
-    predictions.append(model.predict(K_test))
+    model.fit(x, y, C=1)
+    predictions.append(model.predict(z))
     print(f'finished dataset')
 
-save_predictions(predictions, directory='base_kernel/predictions.csv')
+save_predictions(predictions, directory='weighted_kernel/predictions.csv')
     
