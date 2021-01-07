@@ -14,7 +14,7 @@ def load_train_labels():
     Y_train = []
     for i in range(3):
         Y = pd.read_csv(f'Data/Ytr{i}.csv', index_col=0)
-        Y_train.append(Y['Bound'])
+        Y_train.append(np.array(Y['Bound']))
     return Y_train
 
 def load_train_data():
@@ -31,7 +31,7 @@ def load_test_data():
         X_train.append(X['seq'])
     return X_train
 
-def save_predictions(Y_list, directory='Predictions/predictions.csv'):
+def save_predictions(Y_list, directory='predictions.csv'):
     '''
     Y_pred: list of three numpy arrays with 1000 labels each 
     '''
@@ -39,7 +39,8 @@ def save_predictions(Y_list, directory='Predictions/predictions.csv'):
     index  = Y_pred.index.rename('Id')
     Y_pred = Y_pred.set_index(index)
     Y_pred.to_csv(directory)
-    
+
+
 
 if __name__ == '__main__':
     os.chdir("..")

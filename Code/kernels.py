@@ -36,17 +36,18 @@ def kernel_matrix(kernel, A, B):
             matrix[i,j] = kernel(a,b) 
     return matrix
 
-
-def weighted_kernel(seq1,seq2,d=5,beta=None):
-    if not beta:
-        beta = np.arange(d)
-        beta = 2*(d-beta+1)/(d*(d+1))
-    res = 0
+d=5
+beta = np.arange(d)
+beta = 2*(d-beta+1)/(d*(d+1))
+        
+def weighted_kernel(seq1, seq2, k):
+    assert len(seq1) == len(seq2)
+    
+    count = 0
     L = len(seq1)
-    for k in range(0,d):
-        count = 0
-        for l in range(0,L-k):
-            if seq1[l:l+k+1] == seq2[l:l+k+1]:
-                count += 1
-        res += beta[k] * count
-    return res   
+    for l in range(0,L-k+1):
+        if seq1[l:l+k] == seq2[l:l+k]:
+            count += 1
+    return count   
+
+
