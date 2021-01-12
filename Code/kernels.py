@@ -85,6 +85,7 @@ class WDKernel(Kernel):
             identifier = f'WD_kernel_{A.name()}x{B.name()}_k={k}'
             matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(a, b, k))
             result = result + self.beta[k] * matrix
+        result = result / result.max()
         return result
 
     def compute_kernel_matrix_for_k(self, a, b, k):
