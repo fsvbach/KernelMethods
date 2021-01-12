@@ -29,11 +29,12 @@ svm = SVM()
 
 gaussian = GaussianKernel(1.1)
 linear = LinearKernel()
-wd = WDKernel(list(1 for i in range(5)))
-
+wd = WDKernel([0, 0, 0, 0, 1])
+M = wd.kernel_matrix(train[0], train[0])
+print(M)
 #save_predictions(svm, wd, train, test)
 
-#SVM_C_cross_validation(gaussian, train)
+SVM_C_cross_validation(wd, train[:2])
 
 parameter_range = [ [4 + k * i for k in range(5)] for i in [-1, 0, 1]]
 print(parameter_range)

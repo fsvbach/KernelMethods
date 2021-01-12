@@ -80,14 +80,13 @@ def model_cross_validation(build_model, kernel, training_data, parameter_range, 
     scores = []
     for params in parameter_range:
         score = 0
+        model = build_model(params)
         for idx in indices:
             yte = y_train[idx]
             ytr = np.delete(y_train, idx)
             K   = np.delete(K_train, idx, 1)
             Kte = K[idx]
             Ktr = np.delete(K, idx, 0)
-
-            model = build_model(params)
             model.fit(Ktr, ytr)
             pred = model.predict(Kte)
             score += accuracy(pred, yte) / D
