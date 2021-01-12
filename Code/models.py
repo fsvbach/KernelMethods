@@ -15,17 +15,29 @@ class Model(ABC):
 
     @abstractmethod
     def name(self):
+        '''
+        Create model with paramenters.
+        '''
         pass
 
     @abstractmethod
     def fit(self, train_matrix, labels):
+        '''
+        fit model to training data (as kernel matrix)
+        '''
         pass
 
     @abstractmethod
     def predict(self, test_matrix):
+        '''
+        predict labels for data (given as train x test matrix)
+        '''
         pass
 
     def fit_and_predict(self, kernel, train, test):
+        '''
+        shorthand for fit and predict (takes a kernel object)
+        '''
         K_train = kernel.kernel_matrix(train, train)
         K_test = kernel.kernel_matrix(test, train)
         self.fit(K_train, train.labels())

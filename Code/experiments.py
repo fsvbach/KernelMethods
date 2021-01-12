@@ -23,7 +23,6 @@ def SVM_C_cross_validation(kernel, train):
     plt.savefig(f'Plots/SVM_Cross_valid_{kernel.name()}', dpi=300)
     plt.show()
 
-
 (train, test) = load_data()
 
 svm = SVM()
@@ -34,8 +33,16 @@ wd = WDKernel(list(1 for i in range(5)))
 
 #save_predictions(svm, wd, train, test)
 
-
-print(wd.kernel_matrix(train[0], train[0]))
-
 #SVM_C_cross_validation(gaussian, train)
-SVM_C_cross_validation(wd, [train[0]])
+
+parameter_range = [ [4 + k * i for k in range(5)] for i in [-1, 0, 1]]
+print(parameter_range)
+scores = kernel_cross_validation(svm, lambda betas: WDKernel(betas), train[0], parameter_range)
+plt.plot([-1, 0, 1], scores, label=train[0].name())
+
+plt.title('Different Accuracies after Cross-Validation')
+plt.xlabel('C')
+plt.ylabel('percent')
+plt.legend()
+plt.savefig(f'Plots/SVM_Cross_valid_{wd.name()}', dpi=300)
+plt.show()

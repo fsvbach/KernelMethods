@@ -95,7 +95,29 @@ def model_cross_validation(build_model, kernel, training_data, parameter_range, 
     return scores
 
 
-def kernel_cross_validation(model, build_kernel, training_data, parameter_range):
-    #todo: evaluate different kernel params
-    pass
+def kernel_cross_validation(model, build_kernel, training_data, parameter_range, D=10):
+    y_train = training_data.labels()
+    N          = len(y_train)
+    valid_size = int(N / D)
+    indices    = np.arange(N)
+    np.random.shuffle(indices)
+    indices = np.split(indices[:D*valid_size], D)
+    
+    scores = []
+    for params in parameter_range:
+        score = 0
+        kernel = build_kernel(params)
+        K_train = kernel.kernel_matrix(training_data, training_data)
+        for idx in indices:
+            yte = y_train[idx]
+            ytr = np.delete(y_train, idx)
+            K   = np.delete(K_train, idx, 1)
+            Kte = K[idx]
+            Ktr = np.delete(K, idx, 0)
+
+            model.fit(Ktr, ytr)
+            pred = model.predict(Kte)
+            score += accuracy(pred, yte) / D
+        scores.append(score)
+    return scores
 
