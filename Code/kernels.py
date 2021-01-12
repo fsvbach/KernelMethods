@@ -15,18 +15,6 @@ class Kernel(ABC):
     def name(self):
         pass
 
-class VectorKernel(Kernel):
-
-    @abstractmethod
-    def compute_kernel_matrix(self, A, B):
-        pass
-
-    def kernel_matrix(self, A, B):
-        a = A.as_bag_of_words()
-        b = B.as_bag_of_words()
-        return self.compute_kernel_matrix(a,b)
-
-
 class StringKernel(Kernel):
 
     @abstractmethod
@@ -39,24 +27,32 @@ class StringKernel(Kernel):
             self.compute_kernel_matrix(A.as_strings(), B.as_strings())
         return cached(name, fun)
 
-class LinearKernel(VectorKernel):
+class LinearKernel(Kernel):
+
+    def __init__(self, data_format = lambda d: d.as_bag_of_words()):
+        self.data_format = data_format
 
     def name(self):
         return "LinearKernel"
 
-    def compute_kernel_matrix(self, A, B):
-        matrix = A@B.T
+    def kernel_matrix(self, A, B):
+        a = self.data_format(A)
+        b = self.data_format(B)
+        matrix = a@b.T
         return matrix
 
-class GaussianKernel(VectorKernel):
+class GaussianKernel(Kernel):
 
-    def __init__(self, sigma = 1):
+    def __init__(self, data_format = lambda d: d.as_bag_of_words(), sigma = 1):
+        self.data_format = data_format
         self.sigma = 1
 
     def name(self):
         return f'GaussianKernel_(sigma={self.sigma})'
     
-    def compute_kernel_matrix(self, A, B):
+    def kernel_matrix(self, A, B):
+        A = self.data_format(A)
+        B = self.data_format(B)
         A1 = np.sum(A*A,1)
         B1 = np.sum(B*B,1)
         A2 = np.ones(len(A))
@@ -102,3 +98,5 @@ class WDKernel(Kernel):
             return sum 
 
         return compute_kernel_matrix_elementwise(a, b, kernel_function)
+
+    
