@@ -10,8 +10,9 @@ def compute_kernel_matrix_elementwise(A, B, kernel_function):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
             print(i)
-            for j,b in enumerate(B):
-                matrix[i,j] = kernel_function(a,b) 
+            for j in range(i + 1):
+                matrix[i, j] = kernel_function(a, B[j])
+                matrix[j, i] = matrix[i, j]
         return matrix
 
 

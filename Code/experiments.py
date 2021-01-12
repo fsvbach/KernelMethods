@@ -13,7 +13,7 @@ def SVM_C_cross_validation(kernel, train):
 
     for tr in train:
         scores = model_cross_validation(lambda C: SVM(C), kernel, tr, C_range, D=5)
-        plt.plot(C_range, scores, label=str(tr))
+        plt.plot(C_range, scores, label=tr.name())
 
     plt.title('Different Accuracies after Cross-Validation')
     plt.xscale('log')
@@ -30,10 +30,12 @@ svm = SVM()
 
 gaussian = GaussianKernel(1.1)
 linear = LinearKernel()
-wd = WDKernel(list(1 for _ in range(10)))
+wd = WDKernel(list(1 for i in range(5)))
 
-save_predictions(svm, wd, train, test)
+#save_predictions(svm, wd, train, test)
 
 
+print(wd.kernel_matrix(train[0], train[0]))
 
 #SVM_C_cross_validation(gaussian, train)
+SVM_C_cross_validation(wd, [train[0]])

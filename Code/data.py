@@ -19,6 +19,12 @@ class Data:
             self.vectors = np.array(pd.read_csv(f'Data/X{self.label}{self.index}_mat100.csv', header=None, sep=' '))
         return self.vectors
 
+    def as_int_encoded_strings(self):
+        to_int = { 'A' : 0, 'C': 1, 'G' : 2, 'T' : 3}
+        convert_string = lambda s: list(map(lambda c: to_int[c], s))
+        res = list(map(convert_string, self.as_strings()))
+        return np.array(res)
+
 class TestData(Data):
 
     def __init__(self, index):

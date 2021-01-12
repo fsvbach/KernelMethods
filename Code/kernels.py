@@ -69,7 +69,7 @@ class GaussianKernel(VectorKernel):
         K = np.exp(- K0 / self.sigma**2)
         return K
 
-class WDKernel(StringKernel):
+class WDKernel(Kernel):
     def __init__(self, beta):
         self.k = len(beta)
         self.beta = beta
@@ -77,19 +77,27 @@ class WDKernel(StringKernel):
     def name(self):
         return f"WD_kernel_{self.k}"
 
+    def kernel_matrix(self, A, B):
+        a = A.as_int_encoded_strings()
+        b = B.as_int_encoded_strings()
+        result = np.zeros((len(a), len(b)))
+        for k in range(self.k):
+            identifier = f'WD_kernel_{A.name()}x{B.name()}_k={k}'
+            matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(a, b, k))
+            result = result + self.beta[k] * matrix
+        return result
 
-    def compute_kernel_matrix(self, A, B):
-        to_int = { 'A' : 0, 'C': 1, 'G' : 2, 'T' : 3}
+    def compute_kernel_matrix_for_k(self, a, b, k):
         def kernel_function(seq1, seq2):
             L = len(seq1)
-            sum = 0.0
-            for k in range(self.k):
-                u1, u2 = 0, 0
-                mask = (1 << 2 * (k + 1)) - 1
-                for l in range(L):
-                    u1 = (u1 << 2) & mask | to_int[seq1[l]]
-                    u2 = (u2 << 2) & mask | to_int[seq2[l]]
-                    if l >= k and u1 == u2: #u1 and u2 already have length k?
-                        sum += self.beta[k]  
-            return sum  
-        return compute_kernel_matrix_elementwise(A, B, kernel_function)
+            sum = 0
+            u1, u2 = 0, 0
+            mask = (1 << 2 * (k + 1)) - 1
+            for l in range(L):
+                u1 = (u1 << 2) & mask | seq1[l]
+                u2 = (u2 << 2) & mask | seq2[l]
+                if l >= k and u1 == u2:
+                    sum += 1
+            return sum 
+
+        return compute_kernel_matrix_elementwise(a, b, kernel_function)
