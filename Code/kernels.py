@@ -77,12 +77,19 @@ class WDKernel(StringKernel):
     def name(self):
         return f"WD_kernel_{self.k}"
 
+
     def compute_kernel_matrix(self, A, B):
+        to_int = { 'A' : 0, 'C': 1, 'G' : 2, 'T' : 3}
         def kernel_function(seq1, seq2):
-            count = 0
             L = len(seq1)
-            for l in range(0, L - self.k + 1):
-                if seq1[l:l+self.k] == seq2[l:l+self.k]:
-                    count += 1
-            return count  
+            sum = 0.0
+            for k in range(self.k):
+                u1, u2 = 0, 0
+                mask = (1 << 2 * (k + 1)) - 1
+                for l in range(L):
+                    u1 = (u1 << 2) & mask | to_int[seq1[l]]
+                    u2 = (u2 << 2) & mask | to_int[seq2[l]]
+                    if l >= k and u1 == u2: #u1 and u2 already have length k?
+                        sum += self.beta[k]  
+            return sum  
         return compute_kernel_matrix_elementwise(A, B, kernel_function)

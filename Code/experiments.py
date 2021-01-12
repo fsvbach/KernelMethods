@@ -30,7 +30,7 @@ svm = SVM()
 
 gaussian = GaussianKernel(1.1)
 linear = LinearKernel()
-wd = WDKernel([1] * 5)
+wd = WDKernel(list(1 for _ in range(10)))
 
 save_predictions(svm, wd, train, test)
 
