@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 zeros = []
 mass = []
 
-for i in range(1,16):
+for i in range(1,17):
     betas = np.zeros(i)
     betas[-1] = 1
     wd=kernels.WDKernel(betas)
@@ -31,17 +31,17 @@ for i in range(1,16):
     # plt.imshow(M)
     zeros.append( (np.count_nonzero(M)-len(M))/np.count_nonzero(M))
     mass.append( (M.sum()- M.diagonal().sum() )/M.sum() )
-    plt.title(f'log matrix {i}')
+    plt.title(f'log matrix {i-1} (k={i})')
     plt.colorbar()
-    plt.savefig(f'Plots/log heatmap of k={i}')
+    plt.savefig(f'Plots/Heatmaps/log heatmap of matrix{ i-1}')
     plt.show()
     
 plt.plot(zeros, label='off diagonal nonzero-elements')
     
 plt.plot(mass, label='off diagonal mass')
 plt.title('Analysis of different k mer length without shifts')
-plt.xlabel('length of kmers')
+plt.xlabel('index of matrix (k-1)')
 plt.ylabel('percent')
 plt.legend()
-plt.savefig(f'Plots/analysis of WDKernel')
+plt.savefig(f'Plots/analysis of WDKernel without shifts')
 plt.show()
