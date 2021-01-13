@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
-from proxy import *
+# from proxy import *
 from util import cached, compute_kernel_matrix_elementwise
 
 class Kernel(ABC): 
@@ -46,7 +46,7 @@ class GaussianKernel(Kernel):
 
     def __init__(self, data_format = lambda d: d.as_bag_of_words(), sigma = 1):
         self.data_format = data_format
-        self.sigma = 1
+        self.sigma = sigma
 
     def name(self):
         return f'GaussianKernel_(sigma={self.sigma})'
@@ -73,6 +73,9 @@ class WDKernel(Kernel):
     
     def name(self):
         return f"WD_kernel_{self.k}"
+    
+    def params(self):
+        return "beta"
 
     def kernel_matrix(self, A, B):
         a = A.as_int_encoded_strings()
