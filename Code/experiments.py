@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd 
 
-from kernels import *
-from util import *
-from models import *
-from data import load_data
+from .kernels import *
+from .util import *
+from .models import *
+from .data import load_data
 import matplotlib.pyplot as plt
 
 
@@ -30,11 +30,9 @@ svm = SVM()
 gaussian = GaussianKernel(1.1)
 linear = LinearKernel()
 wd = WDKernel([0, 0, 0, 0, 1])
-M = wd.kernel_matrix(train[0], train[0])
-print(M)
 #save_predictions(svm, wd, train, test)
 
-SVM_C_cross_validation(wd, train[:2])
+SVM_C_cross_validation(wd, train[2:3])
 
 parameter_range = [ [4 + k * i for k in range(5)] for i in [-1, 0, 1]]
 print(parameter_range)
