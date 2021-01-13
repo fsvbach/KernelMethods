@@ -1,17 +1,17 @@
 import numpy as np
 import pandas as pd 
 
-from .kernels import *
-from .util import *
-from .models import *
-from .data import load_data
+from Code import kernels
+from Code import util
+from Code import models
+from Code import data
 import matplotlib.pyplot as plt
 
 
 def SVM_cross_validation(kernel, train, C_range):
     
     for tr in train:
-        scores = model_cross_validation(lambda C: SVM(C), kernel, tr, C_range, D=5)
+        scores = util.model_cross_validation(lambda C: models.SVM(C), kernel, tr, C_range, D=5)
         plt.plot(C_range, scores, label=tr.name())
         print('C Scores:',scores)
     
@@ -26,7 +26,7 @@ def SVM_cross_validation(kernel, train, C_range):
 def Hyper_cross_validation(model, train, Kernel, parameter_range, name=""):
     
     for tr in train:
-        scores = kernel_cross_validation(model, lambda params: Kernel(params), tr, parameter_range)
+        scores = util.kernel_cross_validation(model, lambda params: Kernel(params), tr, parameter_range)
         plt.plot(scores, label=tr.name())
         print('Hyper Scores:',scores)
     
@@ -38,11 +38,11 @@ def Hyper_cross_validation(model, train, Kernel, parameter_range, name=""):
     plt.show()
     
     
-(train, test) = load_data()
+(train, test) = data.load_data()
 
-svm = SVM(C=100)
-sigma = 2.0**np.arange(-2,5)
-Hyper_cross_validation(svm, train, GaussianKernel, sigma, "Gaussian")
+# svm = models.SVM(C=100)
+# sigma = 2.0**np.arange(-2,5)
+# Hyper_cross_validation(svm, train, kernels.GaussianKernel, sigma, "Gaussian")
 
 # wd = WDKernel([0, 0, 0, 0, 1])
 # C_range = 10.0**np.arange(-1,4)

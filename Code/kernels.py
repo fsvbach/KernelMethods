@@ -44,7 +44,7 @@ class LinearKernel(Kernel):
 
 class GaussianKernel(Kernel):
 
-    def __init__(self, data_format = lambda d: d.as_bag_of_words(), sigma = 1):
+    def __init__(self, sigma,  data_format = lambda d: d.as_bag_of_words() ):
         self.data_format = data_format
         self.sigma = sigma
 
@@ -63,7 +63,7 @@ class GaussianKernel(Kernel):
         K2 = np.outer(A2,B1)
         
         K0 = K1 + K2 - 2 * np.inner(A,B)
-        K = np.exp(- K0 / self.sigma**2)
+        K = np.exp(- K0 / self.sigma**2)/np.sqrt(2 * np.pi)/self.sigma
         return K
 
 class WDKernel(Kernel):
