@@ -6,13 +6,14 @@ storage_folder_name = "cache"
 predictions_folder_name = "Predictions"
 plots_foler_name = "Plots"
 
-def compute_kernel_matrix_elementwise(A, B, kernel_function):
+def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
-            print(i)
-            for j in range(i + 1):
-                matrix[i, j] = kernel_function(a, B[j])
-                matrix[j, i] = matrix[i, j]
+            for j,b in enumerate(B):
+                if not symmetric or j>=i: 
+                    matrix[i,j] = kernel_function(a,b) 
+        if symmetric:
+            matrix = matrix + matrix.T - np.diag(matrix.diagonal())
         return matrix
 
 

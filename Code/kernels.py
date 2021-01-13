@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
+from proxy import *
 from util import cached, compute_kernel_matrix_elementwise
 
 class Kernel(ABC): 
@@ -79,7 +80,7 @@ class WDKernel(Kernel):
         result = np.zeros((len(a), len(b)))
         for k in range(self.k):
             identifier = f'WD_kernel_{A.name()}x{B.name()}_k={k}'
-            matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(a, b, k))
+            matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
             result = result + self.beta[k] * matrix
         result = result / result.max()
         return result
@@ -97,6 +98,6 @@ class WDKernel(Kernel):
                     sum += 1
             return sum 
 
-        return compute_kernel_matrix_elementwise(a, b, kernel_function)
+        return compute_kernel_matrix_elementwise(a, b, kernel_function, a.name() == b.name())
 
     
