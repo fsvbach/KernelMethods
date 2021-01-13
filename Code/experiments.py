@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd 
 
-from kernels import *
-from util import *
-from models import *
-from data import load_data
+from .kernels import *
+from .util import *
+from .models import *
+from .data import load_data
 import matplotlib.pyplot as plt
 
 
@@ -47,7 +47,6 @@ Hyper_cross_validation(svm, train, GaussianKernel, sigma, "Gaussian")
 # wd = WDKernel([0, 0, 0, 0, 1])
 # C_range = 10.0**np.arange(-1,4)
 # SVM_cross_validation(wd, train[:2], C_range)
-
 
 # svm = SVM()
 # parameter_range = [ [4 + k * i for k in range(16)] for i in [1,2,3]]

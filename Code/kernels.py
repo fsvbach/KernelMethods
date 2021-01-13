@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
-# from proxy import *
-from util import cached, compute_kernel_matrix_elementwise
+
+from .util import cached, compute_kernel_matrix_elementwise
 
 class Kernel(ABC): 
 
@@ -101,6 +101,6 @@ class WDKernel(Kernel):
                     sum += 1
             return sum 
 
-        return compute_kernel_matrix_elementwise(a, b, kernel_function, a.name() == b.name())
+        return compute_kernel_matrix_elementwise(a. as_int_encoded_strings(), b.as_int_encoded_strings(), kernel_function, a.name() == b.name())
 
     
