@@ -16,4 +16,7 @@ extern "C" {
         return sum;
     }
 
+    double shifted_kernel(int* x1, int* x2, int k, int L) {
+        
+    }
 }
