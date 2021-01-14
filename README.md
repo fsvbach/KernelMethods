@@ -8,5 +8,5 @@ each kernel has different folder where the kernel matrix will be computed and we
 
 execute (in project root):
 ```
-g++ -c -fPIC Code/c-functions/kernel-functions.cpp -Wextra -Wall -shared -Wl,-soname,kernel-functions.so -o Code/c-functions/kernel-functions.so
+g++ -c -fPIC Code/c-functions/kernel-functions.cpp -Wextra -Wall -o Code/c-functions/fun.o && g++ -shared -Wl,-soname,Code/c-functions/kernel-functions.so -o Code/c-functions/kernel-functions.so Code/c-functions/fun.o
 ```

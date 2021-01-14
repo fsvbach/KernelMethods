@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod #abstract classes
 import numpy as np
 
 from .util import cached, compute_kernel_matrix_elementwise
-from .proxy import wd_kernel_function
+from .proxy import cpp_functions
 
 class Kernel(ABC): 
 
@@ -79,10 +79,9 @@ class WDKernel(Kernel):
         return "beta"
 
     def kernel_matrix(self, A, B):
-        a = A.as_int_encoded_strings()
-        b = B.as_int_encoded_strings()
-        result = np.zeros((len(a), len(b)))
+        result = np.zeros((len(A), len(B)))
         for k in range(self.k):
+            if (self.beta[k] == 0): continue
             identifier = f'WD_kernel_{A.name()}x{B.name()}_k={k}'
             matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
             result = result + self.beta[k] * matrix
@@ -90,19 +89,33 @@ class WDKernel(Kernel):
         return result
 
     def compute_kernel_matrix_for_k(self, a, b, k):
-        def kernel_function(seq1, seq2):
-            L = len(seq1)
-            sum = 0
-            u1, u2 = 0, 0
-            mask = (1 << 2 * (k + 1)) - 1
-            for l in range(L):
-                u1 = (u1 << 2) & mask | seq1[l]
-                u2 = (u2 << 2) & mask | seq2[l]
-                if l >= k and u1 == u2:
-                    sum += 1
-            return sum 
+        kernel_function = lambda seq1, seq2: cpp_functions.wd_kernel(seq1, seq2, k, len(seq1))
+        return compute_kernel_matrix_elementwise(a.as_ctype_int_array(), b.as_ctype_int_array(), kernel_function, a == b)
 
-        kernel_function = lambda seq1, seq2: wd_kernel_function(seq1, seq2, k)
-        return compute_kernel_matrix_elementwise(a. as_int_encoded_strings(), b.as_int_encoded_strings(), kernel_function, a == b)
+class WDShiftedKernel(Kernel):
+    def __init__(self, beta, S):
+        self.k = len(beta)
+        self.beta = beta
+        self.S = S
+    
+    def name(self):
+        return f"WD_shifted_kernel_k={self.k}_S={self.S}"
+    
+    def params(self):
+        return "beta"
+
+    def kernel_matrix(self, A, B):
+        result = np.zeros((len(A), len(B)))
+        for k in range(self.k):
+            if (self.beta[k] == 0): continue
+            identifier = f'WD_shifted_kernel_{A.name()}x{B.name()}_k={k}_S={self.S}'
+            matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
+            result = result + self.beta[k] * matrix
+        result = result / result.max()
+        return result
+
+    def compute_kernel_matrix_for_k(self, a, b, k):
+        kernel_function = lambda seq1, seq2: cpp_functions.wd_shifted(seq1, seq2, k, len(seq1), self.S)
+        return compute_kernel_matrix_elementwise(a.as_ctype_int_array(), b.as_ctype_int_array(), kernel_function, a == b)
 
     

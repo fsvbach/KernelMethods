@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod #abstract classes
 import pandas as pd
 import numpy as np
+from ctypes import c_int
 
 class Data(ABC):
     
@@ -9,6 +10,7 @@ class Data(ABC):
         self.label = ""
         self.strings = None
         self.vectors = None
+        self.ctypes = None
 
     @abstractmethod
     def name(self):
@@ -19,6 +21,9 @@ class Data(ABC):
             return self.name() == other.name()
         else:
             return False
+
+    def __len__(self):
+        return len(self.as_strings())
 
     def as_strings(self):
         if self.strings is None:
@@ -35,6 +40,12 @@ class Data(ABC):
         convert_string = lambda s: list(map(lambda c: to_int[c], s))
         res = list(map(convert_string, self.as_strings()))
         return np.array(res)
+
+    def as_ctype_int_array(self):
+        if self.ctypes is None:
+            ints = self.as_int_encoded_strings()
+            self.ctypes = list(map(lambda seq: (c_int * len(seq))(*seq), ints))
+        return self.ctypes
 
 class TestData(Data):
 

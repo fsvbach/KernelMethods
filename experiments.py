@@ -8,7 +8,7 @@ from Code import data
 import matplotlib.pyplot as plt
 
 
-def SVM_cross_validation(kernel, train, C_range, name):
+def SVM_cross_validation(kernel, train, C_range):
     
     for tr in train:
         scores = util.model_cross_validation(lambda C: models.SVM(C), kernel, tr, C_range, D=5)
@@ -20,7 +20,7 @@ def SVM_cross_validation(kernel, train, C_range, name):
     plt.xlabel('C')
     plt.ylabel('percent')
     plt.legend()
-    plt.savefig(f'Plots/SVM_Cross_valid_{name}', dpi=300)
+    plt.savefig(f'Plots/SVM_Cross_valid_{kernel.name()}', dpi=300)
     plt.show()
 
 def Hyper_cross_validation(model, train, Kernel, parameter_range, name):
@@ -47,9 +47,13 @@ def Hyper_cross_validation(model, train, Kernel, parameter_range, name):
 # # betas = np.arange(16)+2
 # betas = np.array([ 0,0,0,1, 2, 3,  3,  2,  2, 1, 1, 1, 1, 1, 1, 1])
 # print(len(betas))
-# wd = kernels.WDKernel(betas)
+#wd = kernels.WDKernel([0,0,0,1])
+#wd.kernel_matrix(train[2], train[2])
 # C_range = 10.0**np.arange(-2,4)
 # SVM_cross_validation(wd, train[:1], C_range, "linear increase")
+
+w = kernels.WDShiftedKernel([0,0,0,1], 20)
+SVM_cross_validation(w, train[:1], 10.0**np.arange(-2,4))
 
 svm = models.SVM()
 # parameter_range = [ [4 + k * i for k in range(16)] for i in [1,2,3]]
