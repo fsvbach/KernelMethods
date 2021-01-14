@@ -1,13 +1,24 @@
+from abc import ABC, abstractmethod #abstract classes
 import pandas as pd
 import numpy as np
 
-class Data:
+class Data(ABC):
     
     def __init__(self, index):
         self.index = index
         self.label = ""
         self.strings = None
         self.vectors = None
+
+    @abstractmethod
+    def name(self):
+        pass
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.name() == other.name()
+        else:
+            return False
 
     def as_strings(self):
         if self.strings is None:

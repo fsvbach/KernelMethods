@@ -101,6 +101,7 @@ class WDKernel(Kernel):
                     sum += 1
             return sum 
 
-        return compute_kernel_matrix_elementwise(a. as_int_encoded_strings(), b.as_int_encoded_strings(), kernel_function, a.name() == b.name())
+        kernel_function = lambda seq1, seq2: proxy.wd_kernel(seq1, seq2, k)
+        return compute_kernel_matrix_elementwise(a. as_int_encoded_strings(), b.as_int_encoded_strings(), kernel_function, a == b))
 
     
