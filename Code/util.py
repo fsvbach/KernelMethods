@@ -1,10 +1,30 @@
 import numpy as np
+import scipy.sparse as sp
 import pandas as pd
 import os
 
 storage_folder_name = "cache"
 predictions_folder_name = "Predictions"
 plots_foler_name = "Plots"
+
+def compute_spectrum(sequences, k):
+    '''
+    seq: sequences as array of base4 encoded ints
+    k: size of the kmers (begins at 1)
+    '''
+    #seq = [0, 1, 1, 2, 3 ...]
+    n = len(sequences)
+    spectrum = sp.dok_matrix((n, 4**k))
+    mask = (1 << (2 * k)) - 1
+    for i,seq in enumerate(sequences):
+        kmer = 0
+        for j, c in enumerate(seq):
+            kmer = ((kmer << 2) & mask) | c
+            if j + 1 >= k:
+                spectrum[i, kmer] += 1 
+    return spectrum.tocsr()
+
+
 
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))

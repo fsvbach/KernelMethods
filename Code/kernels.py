@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
+import matplotlib.pyplot as plt
 
 from .util import cached, compute_kernel_matrix_elementwise
 from .proxy import cpp_functions
@@ -16,6 +17,13 @@ class Kernel(ABC):
     @abstractmethod
     def name(self):
         pass
+
+    def plotMatrix(self, A, B):
+        M = self.kernel_matrix(A, B)
+        plt.imshow(M)
+        plt.colorbar()
+        plt.show()
+        return M
 
 class StringKernel(Kernel):
 
@@ -40,8 +48,24 @@ class LinearKernel(Kernel):
     def kernel_matrix(self, A, B):
         a = self.data_format(A)
         b = self.data_format(B)
+        print(a.shape)
         matrix = a@b.T
+        print(matrix.shape)
         return matrix
+
+class SpectrumKernel(LinearKernel):
+    def __init__(self, k):
+        super().__init__(lambda data: data.as_spectrum(k))
+        self.k = k
+
+    def name(self):
+        return f'SpectrumKernel (k={self.k})'
+
+    def kernel_matrix(self, A, B):
+        M = super().kernel_matrix(A, B).toarray()
+        M /= M.max()
+        return M
+        
 
 class GaussianKernel(Kernel):
 

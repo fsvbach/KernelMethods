@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod #abstract classes
 import pandas as pd
 import numpy as np
 from ctypes import c_int
+from .util import compute_spectrum, cached
 
 class Data(ABC):
     
@@ -11,6 +12,7 @@ class Data(ABC):
         self.strings = None
         self.vectors = None
         self.ctypes = None
+        self.spectrum = {}
 
     @abstractmethod
     def name(self):
@@ -46,6 +48,13 @@ class Data(ABC):
             ints = self.as_int_encoded_strings()
             self.ctypes = list(map(lambda seq: (c_int * len(seq))(*seq), ints))
         return self.ctypes
+
+    def as_spectrum(self, k):
+        if k not in self.spectrum:
+            unique_name = f'spectrum_{self.name()}_k={k}'
+            compute = lambda: compute_spectrum(self.as_int_encoded_strings(), k)
+            self.spectrum[k] = compute() #cached(unique_name, compute)
+        return self.spectrum[k]
 
 class TestData(Data):
 
