@@ -49,26 +49,21 @@ class Model(ABC):
 class our_SVM(Model):
     
     def __init__(self, C=1.0):
-        self._name  = f'SVM_C={C}' 
+        self._name  = f'our_SVM C={C}' 
         self.C      = C
         self.alphas = None
         
     def fit(self, K, y):
-        y = 1.0*y
         G = np.vstack((-np.diag(y), np.diag(y)))
-        y_r = y.reshape(len(y),1)
-        h = np.vstack((np.zeros_like(y_r), np.zeros_like(y_r)+self.C))
-        # print(y.shape)
-        # print(K.shape)
-        # print(G.shape)
-        # print(h.shape)
-        # input()
-        solution    = solvers.qp(matrix(K), matrix(y*1.0), matrix(G), matrix(h*1.0))
+        h = np.vstack((np.zeros((len(y),1)), np.ones((len(y),1))*self.C))
+        solution    = solvers.qp(matrix(K), matrix(-y), matrix(G), matrix(h))
         self.alphas = np.array(solution['x'])
         
     def predict(self, K):
-        assert self.alphas   
-        return np.sign( K @ self.alphas ) 
+        try:
+            return np.sign( K @ self.alphas )
+        except:
+            print('Has not fitted yet')
     
     def name(self):
         return self._name

@@ -1,11 +1,6 @@
 ## Things to Code
 
-- implement SVM (analyze the alphas)
-- implement mismatch kernel (hope for performance)
-- fix cache for scipy objects
-- add a SumOfKernels kernel (takes list of kernels and weights)
-- add ProductOfKernel (as above)
-- (maybe) merge cross_validation in one method
+- (slow) implement mismatch kernel (hope for performance)
 - (maybe) change float64 to float16 to reduce storage
 
 
@@ -13,6 +8,7 @@
 
 - sort dataset by labels and compare (kernel matrix should be sorted, too)
 - do PPCA with different kernels and find main components
+- check the alphas from our SVM implementation
 
 
 ## Things to Plot

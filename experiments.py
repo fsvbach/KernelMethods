@@ -11,8 +11,13 @@ import matplotlib.pyplot as plt
 (train, test) = data.load_data()
 
 Linear = kernels.LinearKernel()
-K = Linear.kernel_matrix(train[0], train[0])
-y = train[0].labels()
+Ktr = Linear.kernel_matrix(train[0], train[0])
+ytr = train[0].labels()
 
 svm = models.our_SVM(C=1)
-svm.fit(K, y)
+svm.fit(Ktr, ytr)
+
+Kte = Linear.kernel_matrix(test[0], train[0])
+
+pred = svm.predict(Kte)
+

@@ -78,7 +78,7 @@ class TrainingData(Data):
     def labels(self):
         if self.y is None:
             y = pd.read_csv(f'Data/Y{self.label}{self.index}.csv', index_col=0)
-            self.y = np.array(y['Bound'])*2-1
+            self.y = np.array(y['Bound'], dtype=np.float64) * 2 - 1
         return self.y
 
 def load_data():
