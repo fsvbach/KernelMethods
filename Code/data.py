@@ -53,7 +53,7 @@ class Data(ABC):
         if k not in self.spectrum:
             unique_name = f'spectrum_{self.name()}_k={k}'
             compute = lambda: compute_spectrum(self.as_int_encoded_strings(), k)
-            self.spectrum[k] = compute() #cached(unique_name, compute)
+            self.spectrum[k] = cached(unique_name, compute, True)
         return self.spectrum[k]
 
 class TestData(Data):

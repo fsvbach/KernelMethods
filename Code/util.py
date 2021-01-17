@@ -37,15 +37,16 @@ def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         return matrix
 
 
-def cached(unique_name, function):
+def cached(unique_name, function, sp_sparse=False):
+    (load, save, filetype) = (sp.load_npz, sp.save_npz, 'npz') if sp_sparse else (np.load, np.save, 'npy')
     if (not os.path.exists(storage_folder_name)):
         os.mkdir(storage_folder_name)
-    filename = f'{storage_folder_name}/{unique_name}.npy'
+    filename = f'{storage_folder_name}/{unique_name}.{filetype}'
     if (os.path.exists(filename)):
-        return np.load(filename)
+        return load(filename)
     else:
         obj = function()
-        np.save(filename, obj)
+        save(filename, obj)
         return obj
 
 def save_predictions(model, kernel, training_data, test_data):
