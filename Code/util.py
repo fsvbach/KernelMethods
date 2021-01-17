@@ -73,6 +73,36 @@ def accuracy(y_pred, y_true):
         assert len(y_pred) == len(y_true)
         return 1 - np.linalg.norm(y_pred - y_true,ord=1) / len(y_true)
 
+def cross_validation(models, kernels, datasets, D=5):
+    
+    scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
+    
+    for i,dataset in enumerate(datasets):
+        y_train    = dataset.labels()
+        indices    = np.arange(len(y_train))
+        np.random.shuffle(indices)
+        indices    = np.array_split(indices, D)
+        
+        for j,kernel in enumerate(kernels):
+            K_train = kernel.kernel_matrix(dataset, dataset)
+            
+            for k, model in enumerate(models):
+                
+                for idx in indices:
+                    yte = y_train[idx]
+                    ytr = np.delete(y_train, idx)
+                    K   = np.delete(K_train, idx, 1)
+                    Kte = K[idx]
+                    Ktr = np.delete(K, idx, 0)
+        
+                    model.fit(Ktr, ytr)
+                    scores[i,j,k] += accuracy(model.predict(Kte), yte)/D
+                
+                print(f'{np.round(scores[i,j,k],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
+                       
+    return scores
+
+
 def model_cross_validation(build_model, kernel, training_data, parameter_range, D=10):
     '''
     Use cross validation to score different model parameters.

@@ -18,7 +18,7 @@ class Kernel(ABC):
     def name(self):
         pass
 
-    def plotMatrix(self, A, B):
+    def plot_matrix(self, A, B):
         M = self.kernel_matrix(A, B)
         plt.imshow(M)
         plt.colorbar()
@@ -142,4 +142,20 @@ class WDShiftedKernel(Kernel):
         kernel_function = lambda seq1, seq2: cpp_functions.wd_shifted(seq1, seq2, k, len(seq1), self.S)
         return compute_kernel_matrix_elementwise(a.as_ctype_int_array(), b.as_ctype_int_array(), kernel_function, a == b)
 
+class SumKernel(Kernel):
+    def __init__(self, kernels, weights):
+        assert len(kernels) == len(weights)
+        self.kernels = kernels
+        self.weights = weights
     
+    def name(self):
+        return "Sum Kernel"
+    
+    def kernel_matrix(self, A, B):
+        result = np.zeros((len(A), len(B)))
+        for k,w in zip(self.kernels, self.weights):
+            result += w * k.kernel_matrix(A,B)
+        return result / self.weights.sum()
+        
+            
+            
