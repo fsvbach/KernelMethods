@@ -49,12 +49,12 @@ class Data(ABC):
             self.ctypes = list(map(lambda seq: (c_int * len(seq))(*seq), ints))
         return self.ctypes
 
-    def as_spectrum(self, k):
+    def as_spectrum(self, k, m=0):
         if k not in self.spectrum:
-            unique_name = f'spectrum_{self.name()}_k={k}'
-            compute = lambda: compute_spectrum(self.as_int_encoded_strings(), k)
-            self.spectrum[k] = cached(unique_name, compute, True)
-        return self.spectrum[k]
+            unique_name = f'spectrum_{self.name()}_k={k}_m={m}'
+            compute = lambda: compute_spectrum(self.as_int_encoded_strings(), k, m)
+            self.spectrum[(k, m)] = cached(unique_name, compute, True)
+        return self.spectrum[(k, m)]
 
 class TestData(Data):
 

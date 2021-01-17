@@ -2,12 +2,13 @@ import numpy as np
 import scipy.sparse as sp
 import pandas as pd
 import os
+from itertools import combinations, product
 
 storage_folder_name = "cache"
 predictions_folder_name = "Predictions"
 plots_foler_name = "Plots"
 
-def compute_spectrum(sequences, k):
+def compute_spectrum(sequences, k, m = 0):
     '''
     seq: sequences as array of base4 encoded ints
     k: size of the kmers (begins at 1)
@@ -21,9 +22,49 @@ def compute_spectrum(sequences, k):
         for j, c in enumerate(seq):
             kmer = ((kmer << 2) & mask) | c
             if j + 1 >= k:
-                spectrum[i, kmer] += 1 
+                for variant in neighbourhood(kmer, k, m):
+                    spectrum[i, variant] += 1
+               # spectrum[i, kmer] += 1 
     return spectrum.tocsr()
 
+def kmer2int(kmer):
+    to_int = { 'A' : 0, 'C': 1, 'G' : 2, 'T' : 3}
+    res = 0
+    for l in kmer:
+        res |= to_int[l]
+        res <<= 2
+    res >>= 2
+    return res
+
+def int2kmer(kmer, k):
+    to_letter = ['A', 'C', 'G', 'T']
+    res = ""
+    for i in range(k):
+        res = to_letter[kmer & 3] + res
+        kmer >>= 2
+    return res
+
+
+def neighbourhood(kmer, k, m):
+    def get_letter(s, n):
+        return (s >> (2 * n)) & 3
+    def set_letter(s, n, l):
+        return (s & ~(3 << (2*n))) | (l << (2*n))
+
+    for i in range(m + 1):
+        for positions in combinations(range(k), i):
+            for letters in product(range(4), repeat=i):
+                skip = False
+                copy = kmer
+                for j,l in enumerate(letters):
+                    if get_letter(kmer, positions[j]) == l:
+                        skip = True
+                        break
+                    copy = set_letter(copy, positions[j], l)
+                if (skip): 
+                    continue
+            #    print(f'yield {int2kmer(copy, k)}')
+                yield copy
 
 
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
