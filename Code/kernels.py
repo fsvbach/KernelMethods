@@ -146,7 +146,7 @@ class SumKernel(Kernel):
     def __init__(self, kernels, weights):
         assert len(kernels) == len(weights)
         self.kernels = kernels
-        self.weights = weights
+        self.weights = np.array(weights)
     
     def name(self):
         return "Sum Kernel"

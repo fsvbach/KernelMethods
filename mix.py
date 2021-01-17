@@ -16,29 +16,33 @@ from Code import data
 import matplotlib.pyplot as plt
 
 
-def plot_cross_val(models, kernels, datasets, fix=0, D=5):
+def plot_cross_val(scores, fix=0, x=1, y=2):
     
-    scores = util.cross_validation(models, kernels, datasets, D=D)
+    scores = scores.transpose(fix,x,y)
     
-    plt.plot(scores)
-    plt.title('Different Accuracies after Cross-Validation')
-    plt.xscale('log')
-    plt.xlabel('C')
-    plt.ylabel('percent')
-    plt.legend()
-    plt.savefig(f'Plots/CV', dpi=300)
-    plt.show()
+    for view in scores:
+        
+        for row in view:
+            plt.plot(row)
+            
+        plt.title('Different Accuracies after Cross-Validation')
+        # plt.xscale('log')
+        plt.xlabel('C')
+        plt.ylabel('percent')
+        plt.legend()
+        plt.savefig(f'Plots/CV', dpi=300)
+        plt.show()
     
-    return scores
-
-
+    # return scores
 
 tr, te = data.load_data()
 
-gauss = kernels.GaussianKernel(0.5)
-wdk   = kernels.WDKernel([0,0,1,1])
+gauss = kernels.GaussianKernel(1)
+wdk   = kernels.WDKernel([0,0,1,1,1])
+sumk   = kernels.SumKernel([gauss,wdk],[1,1])
+wdk1   = kernels.WDKernel([0,0,0,1])
 svm1  = models.SVM(1)
 svm2  = models.SVM(5)
 
-S = util.cross_validation([svm1,svm2], [gauss,wdk], tr)
-
+S = util.cross_validation([svm1,svm2], [gauss,wdk,wdk1,sumk], tr)
+plot_cross_val(S)
