@@ -53,9 +53,11 @@ def Hyper_cross_validation(model, train, Kernel, parameter_range, name):
 # SVM_cross_validation(wd, train[:1], C_range, "linear increase")
 
 svm = models.SVM()
-sk = kernels.SpectrumKernel(3)
+mk = kernels.MismatchKernel(4, 1)
 #sk.plotMatrix(train[0], train[0])
-Hyper_cross_validation(svm, train, kernels.SpectrumKernel, np.arange(2,8), "Spectrum")
+scores = util.cross_validation([svm], [mk], train[:1])
+print(scores)
+#Hyper_cross_validation(svm, train, kernels.SpectrumKernel, np.arange(2,8), "Spectrum")
 #SVM_cross_validation(sk, train[:1], 10.0**np.arange(-2,4))
 
 #w = kernels.WDShiftedKernel([0,0,0,1], 100)

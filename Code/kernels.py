@@ -65,7 +65,21 @@ class SpectrumKernel(LinearKernel):
         M = super().kernel_matrix(A, B).toarray()
         M /= M.max()
         return M
-        
+
+class MismatchKernel(LinearKernel):
+    def __init__(self, k, m):
+        super().__init__(lambda data: data.as_spectrum(k, m))
+        self.k = k
+        self.m = m
+
+    def name(self):
+        return f'MismatchKernel (k={self.k} m={self.m})'
+
+    def kernel_matrix(self, A, B):
+        M = super().kernel_matrix(A, B).toarray()
+        M /= M.max()
+        return M
+    
 
 class GaussianKernel(Kernel):
 
