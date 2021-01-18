@@ -112,9 +112,10 @@ def save_predictions(model, kernel, training_data, test_data):
     Y_pred.to_csv(f'{predictions_folder_name}/{filename}')
 
 def accuracy(y_pred, y_true):
-        assert len(y_pred) == len(y_true)
-        return 1 - np.linalg.norm(y_pred - y_true,ord=1) / len(y_true)
-
+        # assert y_pred.shape == y_true.shape
+        # return 1 - np.linalg.norm(y_pred - y_true,ord=1) / len(y_true)
+        return 1 - np.linalg.norm(y_pred.flatten() - y_true.flatten(), ord=1) / 2 / len(y_true)
+    
 def cross_validation(models, kernels, datasets, D=5):
     
     scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
@@ -143,73 +144,3 @@ def cross_validation(models, kernels, datasets, D=5):
                 print(f'{np.round(scores[i,j,k],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
                        
     return scores
-
-
-def model_cross_validation(build_model, kernel, training_data, parameter_range, D=10):
-    '''
-    Use cross validation to score different model parameters.
-    Parameters
-    ----------
-    build_model: function that creates a model object from an element in the parameter_range iterable
-    kernel: kernel object
-        Kernel to use
-    training_data: label data
-    parameter_range: iterable containing all parameters to try
-    Returns
-    -------
-    scores: list of doubles
-        the accuracy of the model for each value in parameter_range
-    '''
-
-    K_train = kernel.kernel_matrix(training_data, training_data)
-    y_train = training_data.labels()
-
-    N          = len(y_train)
-    valid_size = int(N / D)
-    indices    = np.arange(N)
-    np.random.shuffle(indices)
-    indices = np.split(indices[:D*valid_size], D)
-    
-    scores = []
-    for params in parameter_range:
-        score = 0
-        model = build_model(params)
-        for idx in indices:
-            yte = y_train[idx]
-            ytr = np.delete(y_train, idx)
-            K   = np.delete(K_train, idx, 1)
-            Kte = K[idx]
-            Ktr = np.delete(K, idx, 0)
-            model.fit(Ktr, ytr)
-            pred = model.predict(Kte)
-            score += accuracy(pred, yte) / D
-        scores.append(score)
-    return scores
-
-
-def kernel_cross_validation(model, build_kernel, training_data, parameter_range, D=10):
-    y_train = training_data.labels()
-    N          = len(y_train)
-    valid_size = int(N / D)
-    indices    = np.arange(N)
-    np.random.shuffle(indices)
-    indices = np.split(indices[:D*valid_size], D)
-    
-    scores = []
-    for params in parameter_range:
-        score = 0
-        kernel = build_kernel(params)
-        K_train = kernel.kernel_matrix(training_data, training_data)
-        for idx in indices:
-            yte = y_train[idx]
-            ytr = np.delete(y_train, idx)
-            K   = np.delete(K_train, idx, 1)
-            Kte = K[idx]
-            Ktr = np.delete(K, idx, 0)
-
-            model.fit(Ktr, ytr)
-            pred = model.predict(Kte)
-            score += accuracy(pred, yte) / D
-        scores.append(score)
-    return scores
-

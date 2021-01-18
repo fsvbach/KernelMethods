@@ -48,9 +48,7 @@ class LinearKernel(Kernel):
     def kernel_matrix(self, A, B):
         a = self.data_format(A)
         b = self.data_format(B)
-        print(a.shape)
         matrix = a@b.T
-        print(matrix.shape)
         return matrix
 
 class SpectrumKernel(LinearKernel):
@@ -160,7 +158,7 @@ class SumKernel(Kernel):
     def __init__(self, kernels, weights):
         assert len(kernels) == len(weights)
         self.kernels = kernels
-        self.weights = weights
+        self.weights = np.array(weights)
     
     def name(self):
         return "Sum Kernel"

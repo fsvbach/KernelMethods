@@ -7,7 +7,9 @@ Created on Tue Jan  5 15:05:19 2021
 """
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
+
 from sklearn.svm import SVC
+from cvxopt import solvers, matrix
 
 np.random.seed(8364)
 
@@ -42,6 +44,29 @@ class Model(ABC):
         K_test = kernel.kernel_matrix(test, train)
         self.fit(K_train, train.labels())
         return self.predict(K_test)
+
+
+class our_SVM(Model):
+    
+    def __init__(self, C=1.0):
+        self._name  = f'our_SVM C={C}' 
+        self.C      = C
+        self.alphas = None
+        
+    def fit(self, K, y):
+        G = np.vstack((-np.diag(y), np.diag(y)))
+        h = np.vstack((np.zeros((len(y),1)), np.ones((len(y),1))*self.C))
+        solution    = solvers.qp(matrix(K), matrix(-y), matrix(G), matrix(h))
+        self.alphas = np.array(solution['x'])
+        
+    def predict(self, K):
+        try:
+            return np.sign( K @ self.alphas )
+        except:
+            print('Has not fitted yet')
+    
+    def name(self):
+        return self._name
 
 
 class SVM(Model):
