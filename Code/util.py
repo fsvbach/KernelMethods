@@ -119,7 +119,10 @@ def accuracy(y_pred, y_true):
         # return 1 - np.linalg.norm(y_pred - y_true,ord=1) / len(y_true)
         return 1 - np.linalg.norm(y_pred.flatten() - y_true.flatten(), ord=1) / 2 / len(y_true)
     
-def cross_validation(models, kernels, datasets, D=10):
+def cross_validation(grid, D=10):
+    models   = grid['model']
+    kernels  = grid['kernel']
+    datasets = grid['dataset']
     
     scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
     print(f'Starting Cross Validation...')
