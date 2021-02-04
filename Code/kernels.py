@@ -103,7 +103,7 @@ class MismatchKernel(Kernel):
                 t2 = time.perf_counter()
                 #print(f'Line {i}', end='\r')
                 print(f'Line {i} (neighbourhood: {t1 - t0:2.4f}s, products: {t2 - t1:2.4f}s)', end='\r')
-            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={m1}+{m2}")
+            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={self.m}")
             return np.vstack(K)
 
         identifier = f'MismatchKernel (k={self.k}, m={self.m})_{A.name()}x{B.name()}'
