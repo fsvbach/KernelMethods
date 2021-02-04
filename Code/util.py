@@ -70,6 +70,7 @@ def neighbourhood(kmer, k, m):
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
+            print(f'... iterate computation: row {i+1} of {len(A)}')#, end='\r')
             for j,b in enumerate(B):
                 if not symmetric or j>=i: 
                     matrix[i,j] = kernel_function(a,b) 
@@ -84,8 +85,10 @@ def cached(unique_name, function, sp_sparse=False):
         os.mkdir(storage_folder_name)
     filename = f'{storage_folder_name}/{unique_name}.{filetype}'
     if (os.path.exists(filename)):
+        print(f'Load Kernel from {filename}')
         return load(filename)
     else:
+        print(f'Compute Kernel matrix...')
         obj = function()
         save(filename, obj)
         return obj
@@ -116,10 +119,10 @@ def accuracy(y_pred, y_true):
         # return 1 - np.linalg.norm(y_pred - y_true,ord=1) / len(y_true)
         return 1 - np.linalg.norm(y_pred.flatten() - y_true.flatten(), ord=1) / 2 / len(y_true)
     
-def cross_validation(models, kernels, datasets, D=5):
+def cross_validation(models, kernels, datasets, D=10):
     
     scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
-    
+    print(f'Starting Cross Validation...')
     for i,dataset in enumerate(datasets):
         y_train    = dataset.labels()
         indices    = np.arange(len(y_train))
@@ -127,11 +130,13 @@ def cross_validation(models, kernels, datasets, D=5):
         indices    = np.array_split(indices, D)
         
         for j,kernel in enumerate(kernels):
+            print(f'Begin with Kernel {kernel.name()}')
             K_train = kernel.kernel_matrix(dataset, dataset)
             
             for k, model in enumerate(models):
                 
-                for idx in indices:
+                for d, idx in enumerate(indices):
+                    print(f'... iterate cross validation: run {d+1} of {D}')#, end='\r')
                     yte = y_train[idx]
                     ytr = np.delete(y_train, idx)
                     K   = np.delete(K_train, idx, 1)

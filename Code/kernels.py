@@ -48,6 +48,7 @@ class LinearKernel(Kernel):
     def kernel_matrix(self, A, B):
         a = self.data_format(A)
         b = self.data_format(B)
+        print(f'Compute Linear Kernel for {A.name(), B.name()}')
         matrix = a@b.T
         return matrix
 
@@ -91,6 +92,7 @@ class GaussianKernel(Kernel):
     def kernel_matrix(self, A, B):
         A = self.data_format(A)
         B = self.data_format(B)
+        print(f'Compute Gaussian Kernel for {A.name(), B.name()}')
         A1 = np.sum(A*A,1)
         B1 = np.sum(B*B,1)
         A2 = np.ones(len(A))
