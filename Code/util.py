@@ -51,20 +51,20 @@ def neighbourhood(kmer, k, m):
     def set_letter(s, n, l):
         return (s & ~(3 << (2*n))) | (l << (2*n))
 
-    i = m
-    for positions in combinations(range(k), i):
-        for letters in product(range(4), repeat=i):
-            skip = False
-            copy = kmer
-            for j,l in enumerate(letters):
-                if get_letter(kmer, positions[j]) == l:
-                    skip = True
-                    break
-                copy = set_letter(copy, positions[j], l)
-            if (skip): 
-                continue
-        #    print(f'yield {int2kmer(copy, k)}')
-            yield copy
+    for i in range(m + 1):
+        for positions in combinations(range(k), i):
+            for letters in product(range(4), repeat=i):
+                skip = False
+                copy = kmer
+                for j,l in enumerate(letters):
+                    if get_letter(kmer, positions[j]) == l:
+                        skip = True
+                        break
+                    copy = set_letter(copy, positions[j], l)
+                if (skip): 
+                    continue
+            #    print(f'yield {int2kmer(copy, k)}')
+                yield copy
 
 
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):

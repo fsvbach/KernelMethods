@@ -13,14 +13,14 @@ toy = data.load_toy_data()[0]
 
 
 
-for i in range(5):
-    print(f"m = {i}")
-    mismatchKernel = kernels.MismatchKernel(9, i)
-    K = mismatchKernel.kernel_matrix(train[0], train[0])
+# for i in range(5):
+#     print(f"m = {i}")
+#     mismatchKernel = kernels.MismatchKernel(9, i)
+#     K = mismatchKernel.kernel_matrix(train[0], train[0])
 
-# plt.imshow(np.log(K))
-# plt.show()
-#print(K)
+mmK = kernels.MismatchKernel(8,[0,0,1])
+K2 = mmK.plot_matrix(train[0], train[0])
+print(K2)
 
 # mismatchKernelOld = kernels.MismatchKernelOld(10, 1)
 # K2 = mismatchKernelOld.plot_matrix(train[0], train[0])
