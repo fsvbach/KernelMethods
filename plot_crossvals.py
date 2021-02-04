@@ -29,19 +29,20 @@ def plot_cross_val(scores, view=(0,1,2)):
             - third variable will define x-axis (default: 2 = dataset)
     '''
     
+    labels = np.array(['model','kernel','dataset'])[list(view)]
     scores = scores.transpose(view)
     
     for mat in scores:
         
         for row in mat:
-            plt.plot(row)
+            plt.plot(row,label= labels[1])
             
         plt.title('Different Accuracies after Cross-Validation')
         # plt.xscale('log')
-        plt.xlabel('C')
+        plt.xlabel('labels[1]')
         plt.ylabel('percent')
         plt.legend()
-        plt.savefig(f'Plots/Spectrum_kernel', dpi=300)
+        plt.savefig(f'Plots/{labels[0]}', dpi=300)
         plt.show()
     
 
@@ -59,5 +60,11 @@ spec2 = kernels.MismatchKernel(8,2)
 spec3 = kernels.MismatchKernel(6,2)
 spec4 = kernels.MismatchKernel(4,1)
 
-S = util.cross_validation([svm1], [spec1,spec2,spec3,spec4], tr[:1], D=5)
+models = [svm1]
+kernels = [spec1,spec2,spec3,spec4]
+datasets = tr[:1]
+
+#S = util.cross_validation(models, kernels, datasets, D=5)
+
 plot_cross_val(S, view=(0,2,1))
+
