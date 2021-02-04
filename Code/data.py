@@ -65,6 +65,15 @@ class TestData(Data):
     def name(self):
         return f'test{self.index}'
 
+class ToyData(Data):
+
+    def __init__(self, index):
+        super().__init__(index)
+        self.label = "toy"
+    
+    def name(self):
+        return f'toy{self.index}'
+
 class TrainingData(Data):
 
     def __init__(self, index):
@@ -86,3 +95,5 @@ def load_data():
     Z = [TestData(i) for i in range(3)]
     return (X, Z)
     
+def load_toy_data():
+    return [ToyData(i) for i in range(1)]

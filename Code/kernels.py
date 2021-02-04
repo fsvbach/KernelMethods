@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod #abstract classes
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.sparse as sp
+import time
 
-from .util import cached, compute_kernel_matrix_elementwise
+from .util import cached, compute_kernel_matrix_elementwise, neighbourhood, int2kmer
 from .proxy import cpp_functions
 
 class Kernel(ABC): 
@@ -24,18 +26,6 @@ class Kernel(ABC):
         plt.colorbar()
         plt.show()
         return M
-
-class StringKernel(Kernel):
-
-    @abstractmethod
-    def compute_kernel_matrix(self, A, B):
-        pass
-
-    def kernel_matrix(self, A, B):
-        name = f'kernel_matrix_{self.name()}_{A.name()}x{B.name()}'
-        def fun():
-            self.compute_kernel_matrix(A.as_strings(), B.as_strings())
-        return cached(name, fun)
 
 class LinearKernel(Kernel):
 
@@ -65,7 +55,7 @@ class SpectrumKernel(LinearKernel):
         M /= M.max()
         return M
 
-class MismatchKernel(LinearKernel):
+class MismatchKernelOld(LinearKernel):
     def __init__(self, k, m):
         super().__init__(lambda data: data.as_spectrum(k, m))
         self.k = k
@@ -79,6 +69,45 @@ class MismatchKernel(LinearKernel):
         M /= M.max()
         return M
     
+class MismatchKernel(Kernel):
+
+    def __init__(self, k, m):
+        self.k = k
+        self.m = m
+
+    def name(self):
+        return f'MismatchKernel (k={self.k}, m={self.m})'
+
+    def kernel_matrix(self, A, B):
+        id = f'{self.name()}_{A.name()}x{B.name()}'
+        
+        def compute_kernel_matrix():
+            symmetric = A.name() == B.name()
+            A_spectrum = A.as_spectrum(self.k)
+            B_spectrum = B.as_spectrum(self.k)
+
+            K = []
+            
+            nonzero_avg = 0
+            for i, a in enumerate(A_spectrum):
+                t0 = time.perf_counter()
+                a_expanded = sp.dok_matrix((1, 4**self.k))
+                x = a.tocoo()    
+                for kmer, cnt in zip(x.col, x.data):
+                    for variant in neighbourhood(kmer, self.k, self.m):
+                        a_expanded[0, variant] += cnt
+                a_expanded = a_expanded.tocsr()
+                nonzero_avg += (a_expanded.count_nonzero() / 4**self.k)
+                t1 = time.perf_counter()
+                line = a_expanded @ B_spectrum.T
+                K.append(line.toarray())
+                t2 = time.perf_counter()
+                #print(f'Line {i}', end='\r')
+                print(f'Line {i} (neighbourhood: {t1 - t0:2.4f}s, products: {t2 - t1:2.4f}s)', end='\r')
+            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={self.m}")
+            return np.vstack(K)
+
+        return cached(id, compute_kernel_matrix)
 
 class GaussianKernel(Kernel):
 

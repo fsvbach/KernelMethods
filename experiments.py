@@ -9,15 +9,19 @@ import matplotlib.pyplot as plt
 
     
 (train, test) = data.load_data()
+toy = data.load_toy_data()[0]
 
-Linear = kernels.LinearKernel()
-Ktr = Linear.kernel_matrix(train[0], train[0])
-ytr = train[0].labels()
 
-svm = models.our_SVM(C=1)
-svm.fit(Ktr, ytr)
 
-Kte = Linear.kernel_matrix(test[0], train[0])
+for i in range(5):
+    print(f"m = {i}")
+    mismatchKernel = kernels.MismatchKernel(9, i)
+    K = mismatchKernel.kernel_matrix(train[0], train[0])
 
-pred = svm.predict(Kte)
+# plt.imshow(np.log(K))
+# plt.show()
+#print(K)
 
+# mismatchKernelOld = kernels.MismatchKernelOld(10, 1)
+# K2 = mismatchKernelOld.plot_matrix(train[0], train[0])
+# print(K2)
