@@ -51,20 +51,20 @@ def neighbourhood(kmer, k, m):
     def set_letter(s, n, l):
         return (s & ~(3 << (2*n))) | (l << (2*n))
 
-    i = m
-    for positions in combinations(range(k), i):
-        for letters in product(range(4), repeat=i):
-            skip = False
-            copy = kmer
-            for j,l in enumerate(letters):
-                if get_letter(kmer, positions[j]) == l:
-                    skip = True
-                    break
-                copy = set_letter(copy, positions[j], l)
-            if (skip): 
-                continue
-        #    print(f'yield {int2kmer(copy, k)}')
-            yield copy
+    for i in range(m + 1):
+        for positions in combinations(range(k), i):
+            for letters in product(range(4), repeat=i):
+                skip = False
+                copy = kmer
+                for j,l in enumerate(letters):
+                    if get_letter(kmer, positions[j]) == l:
+                        skip = True
+                        break
+                    copy = set_letter(copy, positions[j], l)
+                if (skip): 
+                    continue
+            #    print(f'yield {int2kmer(copy, k)}')
+                yield copy
 
 
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
@@ -120,24 +120,21 @@ def accuracy(y_pred, y_true):
         return 1 - np.linalg.norm(y_pred.flatten() - y_true.flatten(), ord=1) / 2 / len(y_true)
     
 def cross_validation(grid, D=10):
-    models   = grid['model']
-    kernels  = grid['kernel']
-    datasets = grid['dataset']
-    
-    scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
-    print(f'Starting Cross Validation...')
-    for i,dataset in enumerate(datasets):
+
+    scores = []
+    for dataset in grid['dataset']:
         y_train    = dataset.labels()
         indices    = np.arange(len(y_train))
         np.random.shuffle(indices)
         indices    = np.array_split(indices, D)
         
-        for j,kernel in enumerate(kernels):
+        for kernel in grid['kernel']:
             print(f'Begin with Kernel {kernel.name()}')
             K_train = kernel.kernel_matrix(dataset, dataset)
             
-            for k, model in enumerate(models):
+            for model in grid['model']:
                 
+                score = 0
                 for d, idx in enumerate(indices):
                     print(f'... iterate cross validation: run {d+1} of {D}')#, end='\r')
                     yte = y_train[idx]
@@ -147,8 +144,47 @@ def cross_validation(grid, D=10):
                     Ktr = np.delete(K, idx, 0)
         
                     model.fit(Ktr, ytr)
-                    scores[i,j,k] += accuracy(model.predict(Kte), yte)/D
+                    score += accuracy(model.predict(Kte), yte)
                 
-                print(f'{np.round(scores[i,j,k],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
+                scores.append(score/D)
+                print(f'{np.round(scores[-1],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
+             
+    names = ['dataset','kernel','model']
+    labels = [[i.name() for i in grid[key]] for key in names]
+    index  = pd.MultiIndex.from_product(labels, names=names)
+    return pd.Series(scores, name = 'Accuracy', index=index, dtype='float32')
+  
+
+# def cross_validation(grid, D=10):
+#     models   = grid['model']
+#     kernels  = grid['kernel']
+#     datasets = grid['dataset']
+    
+#     scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
+#     print(f'Starting Cross Validation...')
+#     for i,dataset in enumerate(datasets):
+#         y_train    = dataset.labels()
+#         indices    = np.arange(len(y_train))
+#         np.random.shuffle(indices)
+#         indices    = np.array_split(indices, D)
+        
+#         for j,kernel in enumerate(kernels):
+#             print(f'Begin with Kernel {kernel.name()}')
+#             K_train = kernel.kernel_matrix(dataset, dataset)
+            
+#             for k, model in enumerate(models):
+                
+#                 for d, idx in enumerate(indices):
+#                     print(f'... iterate cross validation: run {d+1} of {D}')#, end='\r')
+#                     yte = y_train[idx]
+#                     ytr = np.delete(y_train, idx)
+#                     K   = np.delete(K_train, idx, 1)
+#                     Kte = K[idx]
+#                     Ktr = np.delete(K, idx, 0)
+        
+#                     model.fit(Ktr, ytr)
+#                     scores[i,j,k] += accuracy(model.predict(Kte), yte)/D
+                
+#                 print(f'{np.round(scores[i,j,k],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
                        
-    return scores
+#     return scores

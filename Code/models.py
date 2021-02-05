@@ -49,7 +49,7 @@ class Model(ABC):
 class our_SVM(Model):
     
     def __init__(self, C=1.0):
-        self._name  = f'our_SVM C={C}' 
+        self._name  = f'ourSVM_{C}' 
         self.C      = C
         self.alphas = None
         
@@ -67,12 +67,13 @@ class our_SVM(Model):
     
     def name(self):
         return self._name
+    
 
 
 class SVM(Model):
     
     def __init__(self, C=1):
-        self._name = f'SVM_C={C}' 
+        self._name = f'SVM_{C}' 
         self.model = SVC(kernel='precomputed', C=C)
         
     def fit(self, train_matrix, labels):

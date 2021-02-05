@@ -48,22 +48,22 @@ class SpectrumKernel(LinearKernel):
         self.k = k
 
     def name(self):
-        return f'SpectrumKernel (k={self.k})'
+        return f'SK_{self.k}'
 
     def kernel_matrix(self, A, B):
         M = super().kernel_matrix(A, B).toarray()
         M /= M.max()
         return M
 
-class MismatchKernelOld(LinearKernel):
+class MismatchKernelDirect(LinearKernel):
     def __init__(self, k, m):
         super().__init__(lambda data: data.as_spectrum(k, m))
         self.k = k
         self.m = m
 
     def name(self):
-        return f'MismatchKernel (k={self.k} m={self.m})'
-
+        return f'MKD_{self.k}_{2*self.m}'
+    
     def kernel_matrix(self, A, B):
         M = super().kernel_matrix(A, B).toarray()
         M /= M.max()
@@ -71,20 +71,19 @@ class MismatchKernelOld(LinearKernel):
     
 class MismatchKernel(Kernel):
 
-    def __init__(self, k, m):
+    def __init__(self, k, m1, m2):
         self.k = k
-        self.m = m
+        self.m1 = m1
+        self.m2 = m2 
+        self.m = m1 + m2
 
     def name(self):
-        return f'MismatchKernel (k={self.k}, m={self.m})'
+        return f'MK_{self.k}_{self.m}'
 
     def kernel_matrix(self, A, B):
-        id = f'{self.name()}_{A.name()}x{B.name()}'
-        
         def compute_kernel_matrix():
-            symmetric = A.name() == B.name()
             A_spectrum = A.as_spectrum(self.k)
-            B_spectrum = B.as_spectrum(self.k)
+            B_spectrum = B.as_spectrum(self.k, self.m2)
 
             K = []
             
@@ -94,7 +93,7 @@ class MismatchKernel(Kernel):
                 a_expanded = sp.dok_matrix((1, 4**self.k))
                 x = a.tocoo()    
                 for kmer, cnt in zip(x.col, x.data):
-                    for variant in neighbourhood(kmer, self.k, self.m):
+                    for variant in neighbourhood(kmer, self.k, self.m1):
                         a_expanded[0, variant] += cnt
                 a_expanded = a_expanded.tocsr()
                 nonzero_avg += (a_expanded.count_nonzero() / 4**self.k)
@@ -104,10 +103,12 @@ class MismatchKernel(Kernel):
                 t2 = time.perf_counter()
                 #print(f'Line {i}', end='\r')
                 print(f'Line {i} (neighbourhood: {t1 - t0:2.4f}s, products: {t2 - t1:2.4f}s)', end='\r')
-            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={self.m}")
+            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={self.m1}+{self.m2}")
             return np.vstack(K)
 
-        return cached(id, compute_kernel_matrix)
+        identifier = f'MismatchKernel (k={self.k}, m={self.m})_{A.name()}x{B.name()}'
+        matrix = cached(identifier, compute_kernel_matrix)
+        return matrix / matrix.max() 
 
 class GaussianKernel(Kernel):
 
@@ -116,21 +117,21 @@ class GaussianKernel(Kernel):
         self.sigma = sigma
 
     def name(self):
-        return f'GaussianKernel_(sigma={self.sigma})'
+        return f'G_{self.sigma}'
     
     def kernel_matrix(self, A, B):
-        A = self.data_format(A)
-        B = self.data_format(B)
+        a = self.data_format(A)
+        b = self.data_format(B)
         print(f'Compute Gaussian Kernel for {A.name(), B.name()}')
-        A1 = np.sum(A*A,1)
-        B1 = np.sum(B*B,1)
-        A2 = np.ones(len(A))
-        B2 = np.ones(len(B))
+        A1 = np.sum(a*a,1)
+        B1 = np.sum(b*b,1)
+        A2 = np.ones(len(a))
+        B2 = np.ones(len(b))
         
         K1 = np.outer(A1,B2)
         K2 = np.outer(A2,B1)
         
-        K0 = K1 + K2 - 2 * np.inner(A,B)
+        K0 = K1 + K2 - 2 * np.inner(a,b)
         K = np.exp(- K0 / self.sigma**2)/np.sqrt(2 * np.pi)/self.sigma
         return K
 
@@ -138,12 +139,9 @@ class WDKernel(Kernel):
     def __init__(self, beta):
         self.k = len(beta)
         self.beta = beta
-    
+
     def name(self):
-        return f"WD_kernel_{self.k}"
-    
-    def params(self):
-        return "beta"
+        return f'WDK_{self.k}'
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
@@ -166,10 +164,7 @@ class WDShiftedKernel(Kernel):
         self.S = S
     
     def name(self):
-        return f"WD_shifted_kernel_k={self.k}_S={self.S}"
-    
-    def params(self):
-        return "beta"
+        return f'WDK_{self.k}_{self.S}'
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
@@ -193,7 +188,7 @@ class SumKernel(Kernel):
     
     def name(self):
         return "Sum Kernel"
-    
+
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
         for k,w in zip(self.kernels, self.weights):

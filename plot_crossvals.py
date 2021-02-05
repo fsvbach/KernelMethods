@@ -16,53 +16,65 @@ from Code import data
 import matplotlib.pyplot as plt
 
 
-def plot_cross_val(scores, grid, view=(0,1,2)):
+def plot_cross_val(scores, view):
     '''
     Parameters
     ----------
-    scores : 3D-array
-        containing the scores of cross-validation.
-    view : TUPLE, optional
-        defining the plot design by permutation of (model=0, kernel=1, dataset=2):
-            - first entry: plot title
-            - second entry: legend title
-            - third entry: x-axis 
+    scores : DataFrame
+        containing the scores of cross-validation with MultiIndex
+    view   : dict
+        containing the plot-hierarchy
     '''
+    title, legend, xaxis = view['title'], view['legend'], view['xaxis']
     
-    x,y,z = np.array(['model','kernel','dataset'])[list(view)]
-    scores = scores.transpose(view)
-    
-    for i,mat in enumerate(scores):
-        
-        for j,row in enumerate(mat):
-            plt.plot(row, marker='o', linestyle='--', label= grid[y][j].name())
-            
-        plt.title(f'Cross-Validation for {x}: {grid[x][i].name()}')
-        # plt.xscale('log')
-        plt.xlabel(z)
-        plt.xticks(range(len(row)), [a.name() for a in grid[z]], rotation='vertical')
+    for i,mat in scores.groupby(level=title):
+        for j, row in mat.groupby(level=legend):
+            plt.plot(row.values, marker='o', linestyle='--', label=j)
+        plt.title(f"{title}: {i}")
+        plt.xlabel(xaxis)
+        plt.xticks(range(len(row.values)), row.index.get_level_values(xaxis) ,rotation='vertical')
+        plt.legend(title=legend)
         plt.ylabel('accuracy [%]')
-        plt.legend(title=y)
-        plt.savefig(f'Plots/CV_{x}_{grid[x][i].name()}', dpi=300)
+        plt.savefig(f"Plots/CV_{title}", dpi=300)
         plt.show()
 
 tr, te = data.load_data()
 
-# gauss = kernels.GaussianKernel(1)
-# wdk   = kernels.WDKernel([0,0,1,1,1])
-# sumk   = kernels.SumKernel([gauss,wdk],[1,1])
-# wdk1   = kernels.WDKernel([0,0,0,1])
-svm1  = models.SVM(5)
+gauss = kernels.GaussianKernel(1)
+wdk   = kernels.WDKernel([0,0,1,1,1])
+sumk   = kernels.SumKernel([gauss,wdk],[1,1])
+wdk1   = kernels.WDKernel([0,0,0,1])
+
+# svm1  = models.SVM(5)
 # svm2  = models.our_SVM(5)
 
-spec1 = kernels.MismatchKernel(11,1)
-spec2 = kernels.MismatchKernel(9,1)
-spec3 = kernels.MismatchKernel(9,0)
-spec4 = kernels.MismatchKernel(4,1)
+# spec1 = kernels.MismatchKernel(11,1)
+# spec2 = kernels.MismatchKernel(9,1)
+# spec3 = kernels.MismatchKernel(9,0)
+# spec4 = kernels.MismatchKernel(4,1)
 
-grid = {'model': [svm1], 'kernel': [spec1,spec2,spec3,spec4], 'dataset': tr[:1]}
+# k1 = kernels.MismatchKernelDirect(8, 2)
+# k2 = kernels.MismatchKernel(9, 2, 1)
+# k3 = kernels.MismatchKernel(10, 2, 1)
 
-S = util.cross_validation(grid, D=5)
+grid = {'model': [models.SVM(C) for C in 10.0**np.arange(-1, 2)], 
+        'kernel': [gauss,wdk,sumk,wdk1], 
+        'dataset': tr[:2]
+        }
 
-plot_cross_val(S, grid, view=(2,0,1))
+view = {'title' : 'dataset',
+        'legend': 'kernel',
+        'xaxis' : 'model'
+        }
+
+view = {'title' : 'model',
+        'legend': 'dataset',
+        'xaxis' : 'kernel'
+        }
+
+scores = util.cross_validation(grid, D=5)
+
+plot_cross_val(scores, view)
+
+
 
