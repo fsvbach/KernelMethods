@@ -13,11 +13,11 @@ def compute_spectrum(sequences, k, m = 0):
     seq: sequences as array of base4 encoded ints
     k: size of the kmers (begins at 1)
     '''
-    #seq = [0, 1, 1, 2, 3 ...]
     n = len(sequences)
     spectrum = sp.dok_matrix((n, 4**k))
     mask = (1 << (2 * k)) - 1
     for i,seq in enumerate(sequences):
+        print(f'...iteration {i+1} of {n}', end='\r')
         kmer = 0
         for j, c in enumerate(seq):
             kmer = ((kmer << 2) & mask) | c
@@ -70,7 +70,7 @@ def neighbourhood(kmer, k, m):
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
-            print(f'... iterate computation: row {i+1} of {len(A)}')#, end='\r')
+            print(f'... iteration {i+1} of {len(A)}', end='\r')
             for j,b in enumerate(B):
                 if not symmetric or j>=i: 
                     matrix[i,j] = kernel_function(a,b) 
@@ -85,34 +85,40 @@ def cached(unique_name, function, sp_sparse=False):
         os.mkdir(storage_folder_name)
     filename = f'{storage_folder_name}/{unique_name}.{filetype}'
     if (os.path.exists(filename)):
-        print(f'Load Kernel from {filename}')
+        print(f'Load {filename}')
         return load(filename)
     else:
-        print(f'Compute Kernel matrix...')
+        print(f'Compute {filename}...')
         obj = function()
         save(filename, obj)
         return obj
 
-def save_predictions(model, kernel, training_data, test_data):
+def save_predictions(models, kernels, training_data, test_data):
     '''
-    model -- a model object
-    kernel -- a kernel object
+    models -- list of model objects
+    kernels -- list of kernel objects
     training_data: list of TrainingData objects
     test_data: list of TestDataObjects
     '''
 
+    name = ''
+    for m,k in zip(models,kernels): name+='_'+m.name()+','+k.name()
+    filename = f'predictions{name}.csv'
+        
     Y_list = []
-    for (train, test) in zip(training_data, test_data):
+    for (model, kernel, train, test) in zip(models, kernels, training_data, test_data):
+        print(f'Calculate Predictions for {model.name(), kernel.name(), train.name()}')
         pred = model.fit_and_predict(kernel, train, test)
-        Y_list.append(pred)
+        Y_list.append((pred/2+0.5).astype(int))
 
     Y_pred = pd.DataFrame(np.concatenate(Y_list), columns=['Bound'])
     index  = Y_pred.index.rename('Id')
     Y_pred = Y_pred.set_index(index)
-    filename = f'predictions_{model.name()}_{kernel.name()}.csv'
+
     if (not os.path.exists(predictions_folder_name)):
         os.mkdir(predictions_folder_name)
     Y_pred.to_csv(f'{predictions_folder_name}/{filename}')
+    print(f'Saved predictions to {predictions_folder_name}/{filename}')
 
 def accuracy(y_pred, y_true):
         # assert y_pred.shape == y_true.shape
@@ -136,7 +142,7 @@ def cross_validation(grid, D=10):
                 
                 score = 0
                 for d, idx in enumerate(indices):
-                    print(f'... iterate cross validation: run {d+1} of {D}')#, end='\r')
+                    print(f'... iteration {d+1} of {D}', end='\r')
                     yte = y_train[idx]
                     ytr = np.delete(y_train, idx)
                     K   = np.delete(K_train, idx, 1)
@@ -154,37 +160,3 @@ def cross_validation(grid, D=10):
     index  = pd.MultiIndex.from_product(labels, names=names)
     return pd.Series(scores, name = 'Accuracy', index=index, dtype='float32')
   
-
-# def cross_validation(grid, D=10):
-#     models   = grid['model']
-#     kernels  = grid['kernel']
-#     datasets = grid['dataset']
-    
-#     scores = np.zeros( shape=(len(datasets), len(kernels), len(models)) ) 
-#     print(f'Starting Cross Validation...')
-#     for i,dataset in enumerate(datasets):
-#         y_train    = dataset.labels()
-#         indices    = np.arange(len(y_train))
-#         np.random.shuffle(indices)
-#         indices    = np.array_split(indices, D)
-        
-#         for j,kernel in enumerate(kernels):
-#             print(f'Begin with Kernel {kernel.name()}')
-#             K_train = kernel.kernel_matrix(dataset, dataset)
-            
-#             for k, model in enumerate(models):
-                
-#                 for d, idx in enumerate(indices):
-#                     print(f'... iterate cross validation: run {d+1} of {D}')#, end='\r')
-#                     yte = y_train[idx]
-#                     ytr = np.delete(y_train, idx)
-#                     K   = np.delete(K_train, idx, 1)
-#                     Kte = K[idx]
-#                     Ktr = np.delete(K, idx, 0)
-        
-#                     model.fit(Ktr, ytr)
-#                     scores[i,j,k] += accuracy(model.predict(Kte), yte)/D
-                
-#                 print(f'{np.round(scores[i,j,k],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
-                       
-#     return scores

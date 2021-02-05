@@ -8,9 +8,18 @@ from Code import data
 import matplotlib.pyplot as plt
 
     
-(train, test) = data.load_data()
+(training_data, test_data) = data.load_data()
 
 
-# mismatchKernelOld = kernels.MismatchKernelOld(10, 1)
-# K2 = mismatchKernelOld.plot_matrix(train[0], train[0])
+# mkd = kernels.MismatchKernelDirect(11, 1)
+# K2 = mkd.plot_matrix(train[2], train[2])
 # print(K2)
+
+
+# best models fo far
+models  = [models.SVM(C) for C in [7,14,8]]
+kernels = [kernels.MismatchKernelDirect(K, M) for (K,M) in zip([10,10,11],[1,1,1])]
+
+#save predictions
+util.save_predictions(models, kernels, training_data, test_data)
+

@@ -35,15 +35,17 @@ def plot_cross_val(scores, view):
         plt.xticks(range(len(row.values)), row.index.get_level_values(xaxis) ,rotation='vertical')
         plt.legend(title=legend)
         plt.ylabel('accuracy [%]')
-        plt.savefig(f"Plots/CV_{title}", dpi=300)
+        plt.tight_layout()
+        plt.savefig(f"Plots/{xaxis}-CV for {i}", dpi=300)
         plt.show()
-
+        
+    
 tr, te = data.load_data()
 
-gauss = kernels.GaussianKernel(1)
-wdk   = kernels.WDKernel([0,0,1,1,1])
-sumk   = kernels.SumKernel([gauss,wdk],[1,1])
-wdk1   = kernels.WDKernel([0,0,0,1])
+# gauss = kernels.GaussianKernel(1)
+# wdk   = kernels.WDKernel([0,0,1,1,1])
+# sumk   = kernels.SumKernel([gauss,wdk],[1,1])
+# wdk1   = kernels.WDKernel([0,0,0,1])
 
 # svm1  = models.SVM(5)
 # svm2  = models.our_SVM(5)
@@ -53,13 +55,15 @@ wdk1   = kernels.WDKernel([0,0,0,1])
 # spec3 = kernels.MismatchKernel(9,0)
 # spec4 = kernels.MismatchKernel(4,1)
 
-# k1 = kernels.MismatchKernelDirect(8, 2)
-# k2 = kernels.MismatchKernel(9, 2, 1)
-# k3 = kernels.MismatchKernel(10, 2, 1)
+# k1 = kernels.MismatchKernel(9, 2,1)
+# k3 = kernels.MismatchKernel(10, 2,1)
+k1 = kernels.MismatchKernelDirect(10, 1)
+# k1 = kernels.MismatchKernelDirect(10, 1)
+# k2 = kernels.MismatchKernel(11, 1,0)
 
-grid = {'model': [models.SVM(C) for C in 10.0**np.arange(-1, 2)], 
-        'kernel': [gauss,wdk,sumk,wdk1], 
-        'dataset': tr[:2]
+grid = {'model': [models.SVM(C) for C in 2*np.arange(4,11)], 
+        'kernel': [k1], 
+        'dataset': tr[1:2]
         }
 
 view = {'title' : 'dataset',
@@ -67,12 +71,7 @@ view = {'title' : 'dataset',
         'xaxis' : 'model'
         }
 
-view = {'title' : 'model',
-        'legend': 'dataset',
-        'xaxis' : 'kernel'
-        }
-
-scores = util.cross_validation(grid, D=5)
+scores = util.cross_validation(grid, D=10)
 
 plot_cross_val(scores, view)
 
