@@ -55,15 +55,16 @@ tr, te = data.load_data()
 # spec3 = kernels.MismatchKernel(9,0)
 # spec4 = kernels.MismatchKernel(4,1)
 
-# k1 = kernels.MismatchKernel(9, 2,1)
-# k3 = kernels.MismatchKernel(10, 2,1)
-k1 = kernels.MismatchKernelDirect(10, 1)
+k1 = kernels.MismatchKernel(9, 2,1)
+k2 = kernels.MismatchKernel(10, 2,1)
 # k1 = kernels.MismatchKernelDirect(10, 1)
-# k2 = kernels.MismatchKernel(11, 1,0)
+# k1 = kernels.MismatchKernelDirect(10, 1)
+k3 = kernels.MismatchKernel(11, 2,1)
+k3 = kernels.MismatchKernel(12, 2,1)
 
-grid = {'model': [models.SVM(C) for C in 2*np.arange(4,11)], 
-        'kernel': [k1], 
-        'dataset': tr[1:2]
+grid = {'model': [models.SVM(C) for C in 2*np.arange(11)], 
+        'kernel': [k1,k2,k3], 
+        'dataset': tr
         }
 
 view = {'title' : 'dataset',

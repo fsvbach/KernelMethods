@@ -3,6 +3,7 @@ import scipy.sparse as sp
 import pandas as pd
 import os
 from itertools import combinations, product
+import matplotlib.pyplot as plt
 
 storage_folder_name = "cache"
 predictions_folder_name = "Predictions"
@@ -160,3 +161,55 @@ def cross_validation(grid, D=10):
     index  = pd.MultiIndex.from_product(labels, names=names)
     return pd.Series(scores, name = 'Accuracy', index=index, dtype='float32')
   
+def plot_cross_val(scores, view):
+    '''
+    Parameters
+    ----------
+    scores : DataFrame
+        containing the scores of cross-validation with MultiIndex
+    view   : dict
+        containing the plot-hierarchy
+    '''
+    title, legend, xaxis = view['title'], view['legend'], view['xaxis']
+    
+    for i,mat in scores.groupby(level=title):
+        for j, row in mat.groupby(level=legend):
+            plt.plot(row.values, marker='o', linestyle='--', label=j)
+        plt.title(f"{title}: {i}")
+        plt.xlabel(xaxis)
+        plt.xticks(range(len(row.values)), row.index.get_level_values(xaxis) ,rotation='vertical')
+        plt.legend(title=legend)
+        plt.ylabel('accuracy [%]')
+        plt.tight_layout()
+        plt.savefig(f"Plots/{xaxis}-CV for {i}", dpi=300)
+        plt.show()
+        
+        
+# def plot_heatmaps(kernel, data):
+#     zeros = []
+#     mass = []
+    
+#     for i in range(1,17):
+#         betas = np.zeros(i)
+#         betas[-1] = 1
+#         wd=kernels.WDKernel(betas)
+#         M = wd.kernel_matrix(data,data)
+        
+#         plt.imshow(np.log(M+0.00001))
+#         # plt.imshow(M)
+#         zeros.append( (np.count_nonzero(M)-len(M))/np.count_nonzero(M))
+#         mass.append( (M.sum()- M.diagonal().sum() )/M.sum() )
+#         plt.title(f'log matrix {i-1} (k={i})')
+#         plt.colorbar()
+#         plt.savefig(f'Plots/Heatmaps/log heatmap of matrix{ i-1}')
+#         plt.show()
+        
+#     plt.plot(zeros, label='off diagonal nonzero-elements')
+        
+#     plt.plot(mass, label='off diagonal mass')
+#     plt.title('Analysis of different k mer length without shifts')
+#     plt.xlabel('index of matrix (k-1)')
+#     plt.ylabel('percent')
+#     plt.legend()
+#     plt.savefig(f'Plots/analysis of WDKernel without shifts')
+#     plt.show()
