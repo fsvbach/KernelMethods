@@ -24,31 +24,31 @@ import numpy as np
 
 ### PLOT CROSS VAL ###
 
-k3 = kernels.MismatchKernel(10, 2, 1)
-k1 = kernels.MismatchKernelDirect(8, 2)
-k2 = kernels.MismatchKernelDirect(10, 1)
-k4 = kernels.MismatchKernel(11, 2, 1)
+# k4 = kernels.MismatchKernelDirect(10, 1)
+# # k5 = kernels.MismatchKernelDirect(11, 0)
 
-grid = {'model': [models.SVM(C) for C in 2*np.arange(4,9)], 
-        'kernel': [k1,k2,k3,k4], 
-        'dataset': training_data[1:2]
-        }
+# grid = {'model': [models.SVM(C) for C in np.arange(14.5,20.5,0.5)], 
+#         'kernel': [k4], 
+#         'dataset': training_data[1:2]
+#         }
 
-view = {'title' : 'dataset',
-        'legend': 'kernel',
-        'xaxis' : 'model'
-        }
+# view = {'title' : 'dataset',
+#         'legend': 'kernel',
+#         'xaxis' : 'model'
+#         }
 
-scores = util.cross_validation(grid, D=10)
+# scores = util.cross_validation(grid, D=10)
 
-util.plot_cross_val(scores, view)
+# util.plot_cross_val(scores, view)
 
 
 ### SAVE PREDICTIONS ###
 
 # # best models and kernels so far
-# models  = [models.SVM(C) for C in [7,14,8]]
-# kernels = [kernels.MismatchKernelDirect(K, M) for (K,M) in zip([10,10,11],[1,1,1])]
+# models  = [models.SVM(C) for C in [7,16.5,2.25]]
+# kernels = [kernels.MismatchKernelDirect(8, 2),
+#             kernels.MismatchKernelDirect(10, 1),
+#             kernels.MismatchKernel(11, 2, 1)]
 
 # #save predictions
 # util.save_predictions(models, kernels, training_data, test_data)

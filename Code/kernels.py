@@ -142,7 +142,7 @@ class WDKernel(Kernel):
         self.beta = beta
 
     def name(self):
-        return f'WDK_{self.k}'
+        return f'WDK_{self.beta}'
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
@@ -188,7 +188,7 @@ class SumKernel(Kernel):
         self.weights = np.array(weights)
     
     def name(self):
-        return "Sum Kernel"
+        return "Sum Kernel {self.weights}"
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
