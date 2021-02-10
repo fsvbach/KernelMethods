@@ -5,7 +5,7 @@ import scipy.sparse as sp
 import time
 
 from .util import cached, compute_kernel_matrix_elementwise, neighbourhood, int2kmer
-# from .proxy import cpp_functions
+from .proxy import cpp_functions
 
 class Kernel(ABC): 
 
@@ -55,7 +55,6 @@ class SpectrumKernel(LinearKernel):
         M /= M.max()
         return M
 
-    
 class MismatchKernel(Kernel):
 
     def __init__(self, k, m1, m2, timer = False):

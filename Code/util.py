@@ -5,7 +5,7 @@ import os
 from itertools import combinations, product
 import matplotlib.pyplot as plt
 
-storage_folder_name = "cache"       #cache/mismatch etc also possible
+storage_folder_name = "cache/cluster"
 predictions_folder_name = "Predictions"
 plots_folder_name = "Plots"
 
