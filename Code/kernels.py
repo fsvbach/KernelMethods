@@ -5,7 +5,7 @@ import scipy.sparse as sp
 import time
 
 from .util import cached, compute_kernel_matrix_elementwise, neighbourhood, int2kmer
-from .proxy import cpp_functions
+# from .proxy import cpp_functions
 
 class Kernel(ABC): 
 
@@ -22,7 +22,7 @@ class Kernel(ABC):
 
     def plot_matrix(self, A, B):
         M = self.kernel_matrix(A, B)
-        plt.imshow(M)
+        plt.imshow(np.log(M+0.00001))
         plt.colorbar()
         plt.show()
         return M
@@ -38,7 +38,7 @@ class LinearKernel(Kernel):
     def kernel_matrix(self, A, B):
         a = self.data_format(A)
         b = self.data_format(B)
-        print(f'Compute Linear Kernel for {A.name(), B.name()}')
+        print(f"Compute Linear Kernel for {A.name(), B.name()}")
         matrix = a@b.T
         return matrix
 
@@ -48,68 +48,48 @@ class SpectrumKernel(LinearKernel):
         self.k = k
 
     def name(self):
-        return f'SK_{self.k}'
+        return f"SK_{self.k}"
 
     def kernel_matrix(self, A, B):
         M = super().kernel_matrix(A, B).toarray()
         M /= M.max()
         return M
 
-class MismatchKernelDirect(LinearKernel):
-    def __init__(self, k, m):
-        super().__init__(lambda data: data.as_spectrum(k, m))
-        self.k = k
-        self.m = m
-
-    def name(self):
-        return f'MKD_{self.k}_{2*self.m}'
-    
-    def kernel_matrix(self, A, B):
-        M = super().kernel_matrix(A, B).toarray()
-        M /= M.max()
-        return M
     
 class MismatchKernel(Kernel):
 
-    def __init__(self, k, m1, m2):
+    def __init__(self, k, m1, m2, timer = False):
         self.k = k
         self.m1 = m1
         self.m2 = m2 
         self.m = m1 + m2
 
     def name(self):
-        return f'MK_{self.k}_{self.m}'
+        return f"MK_{self.k}_{self.m}"
 
     def kernel_matrix(self, A, B):
         def compute_kernel_matrix():
-            A_spectrum = A.as_spectrum(self.k)
-            B_spectrum = B.as_spectrum(self.k, self.m2)
-
-            K = []
+            t1 = time.perf_counter()
+            A_spectrum = A.as_spectrum(self.k, self.m1)
+            t2 = time.perf_counter()
+            print(f'... finished in {t2 - t1:2.4f}s)')
             
-            nonzero_avg = 0
-            for i, a in enumerate(A_spectrum):
-                t0 = time.perf_counter()
-                a_expanded = sp.dok_matrix((1, 4**self.k))
-                x = a.tocoo()    
-                for kmer, cnt in zip(x.col, x.data):
-                    for variant in neighbourhood(kmer, self.k, self.m1):
-                        a_expanded[0, variant] += cnt
-                a_expanded = a_expanded.tocsr()
-                nonzero_avg += (a_expanded.count_nonzero() / 4**self.k)
-                t1 = time.perf_counter()
-                line = a_expanded @ B_spectrum.T
-                K.append(line.toarray())
-                t2 = time.perf_counter()
-                #print(f'Line {i}', end='\r')
-                print(f'Line {i} (neighbourhood: {t1 - t0:2.4f}s, products: {t2 - t1:2.4f}s)', end='\r')
+            t1 = time.perf_counter()
+            B_spectrum = B.as_spectrum(self.k, self.m2)
+            t2 = time.perf_counter()
+            print(f'... finished in {t2 - t1:2.4f}s)')
 
-            print(f"Avg. sparsity-ratio: {nonzero_avg:1.5f} (k={self.k}, m={self.m}")
-            return np.vstack(K)
+            print(f"Compute dot-product for {A.name(), B.name()}")
+            t1 = time.perf_counter()
+            matrix = A_spectrum@B_spectrum.T
+            matrix /= matrix.max()
+            t2 = time.perf_counter()
+            print(f'... finished in {t2 - t1:2.4f}s)')
+            return matrix.toarray()
 
-        identifier = f'MismatchKernel (k={self.k}, m={self.m})_{A.name()}x{B.name()}'
-        matrix = cached(identifier, compute_kernel_matrix)
-        return matrix / matrix.max() 
+        identifier = f"MismatchKernel_{A.name()}x{B.name()}_k={self.k}_m={self.m}"
+        matrix = compute_kernel_matrix()
+        return matrix 
 
 class GaussianKernel(Kernel):
 
@@ -118,12 +98,12 @@ class GaussianKernel(Kernel):
         self.sigma = sigma
 
     def name(self):
-        return f'G_{self.sigma}'
+        return f"G_{self.sigma}"
     
     def kernel_matrix(self, A, B):
         a = self.data_format(A)
         b = self.data_format(B)
-        print(f'Compute Gaussian Kernel for {A.name(), B.name()}')
+        print(f"Compute Gaussian Kernel for {A.name(), B.name()}")
         A1 = np.sum(a*a,1)
         B1 = np.sum(b*b,1)
         A2 = np.ones(len(a))
@@ -142,13 +122,13 @@ class WDKernel(Kernel):
         self.beta = beta
 
     def name(self):
-        return f'WDK_{self.beta}'
+        return f"WDK_{self.beta}"
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
         for k in range(self.k):
             if (self.beta[k] == 0): continue
-            identifier = f'WD_kernel_{A.name()}x{B.name()}_k={k}'
+            identifier = f"WD_kernel_{A.name()}x{B.name()}_k={k}"
             matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
             result = result + self.beta[k] * matrix
         result = result / result.max()
@@ -165,13 +145,13 @@ class WDShiftedKernel(Kernel):
         self.S = S
     
     def name(self):
-        return f'WDK_{self.k}_{self.S}'
+        return f"WDK_{self.k}_{self.S}"
 
     def kernel_matrix(self, A, B):
         result = np.zeros((len(A), len(B)))
         for k in range(self.k):
             if (self.beta[k] == 0): continue
-            identifier = f'WD_shifted_kernel_{A.name()}x{B.name()}_k={k}_S={self.S}'
+            identifier = f"WD_shifted_kernel_{A.name()}x{B.name()}_k={k}_S={self.S}"
             matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
             result = result + self.beta[k] * matrix
         result = result / result.max()

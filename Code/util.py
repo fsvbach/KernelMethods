@@ -5,9 +5,9 @@ import os
 from itertools import combinations, product
 import matplotlib.pyplot as plt
 
-storage_folder_name = "cache"
+storage_folder_name = "cache"       #cache/mismatch etc also possible
 predictions_folder_name = "Predictions"
-plots_foler_name = "Plots"
+plots_folder_name = "Plots"
 
 def compute_spectrum(sequences, k, m = 0):
     '''
@@ -18,7 +18,7 @@ def compute_spectrum(sequences, k, m = 0):
     spectrum = sp.dok_matrix((n, 4**k))
     mask = (1 << (2 * k)) - 1
     for i,seq in enumerate(sequences):
-        print(f'...iteration {i+1} of {n}', end='\r')
+        #print(f'...iteration {i+1} of {n}', end='\r')
         kmer = 0
         for j, c in enumerate(seq):
             kmer = ((kmer << 2) & mask) | c
@@ -71,7 +71,7 @@ def neighbourhood(kmer, k, m):
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
-            print(f'... iteration {i+1} of {len(A)}', end='\r')
+            #print(f'... iteration {i+1} of {len(A)}', end='\r')
             for j,b in enumerate(B):
                 if not symmetric or j>=i: 
                     matrix[i,j] = kernel_function(a,b) 
@@ -143,7 +143,7 @@ def cross_validation(grid, D=10):
                 
                 score = 0
                 for d, idx in enumerate(indices):
-                    print(f'... iteration {d+1} of {D}', end='\r')
+                    #print(f'... iteration {d+1} of {D}', end='\r')
                     yte = y_train[idx]
                     ytr = np.delete(y_train, idx)
                     K   = np.delete(K_train, idx, 1)
@@ -156,10 +156,12 @@ def cross_validation(grid, D=10):
                 scores.append(score/D)
                 print(f'{np.round(scores[-1],3)}% validation score for {dataset.name(), model.name(),kernel.name()}')
              
-    names = ['dataset','kernel','model']
-    labels = [[i.name() for i in grid[key]] for key in names]
-    index  = pd.MultiIndex.from_product(labels, names=names)
-    return pd.Series(scores, name = 'Accuracy', index=index, dtype='float32')
+
+    series = pd.Series(scores, name = 'Accuracy', index=index_from_(grid), dtype='float32')
+    if (not os.path.exists(plots_folder_name)):
+        os.mkdir(plots_folder_name)
+    series.to_csv(f'{plots_folder_name}/scores.csv')
+    return series
   
 def plot_cross_val(scores, view):
     '''
@@ -171,7 +173,10 @@ def plot_cross_val(scores, view):
         containing the plot-hierarchy
     '''
     title, legend, xaxis = view['title'], view['legend'], view['xaxis']
-    
+
+    if (not os.path.exists(plots_folder_name)):
+        os.mkdir(plots_folder_name)
+
     for i,mat in scores.groupby(level=title):
         for j, row in mat.groupby(level=legend):
             plt.plot(row.values, marker='o', linestyle='--', label=j)
@@ -181,7 +186,12 @@ def plot_cross_val(scores, view):
         plt.legend(title=legend)
         plt.ylabel('accuracy [%]')
         plt.tight_layout()
-        plt.savefig(f"Plots/{xaxis}-CV for {i}", dpi=300)
+        plt.savefig(f"{plots_folder_name}/{xaxis}-CV for {i}.svg",format='svg')
         plt.show()
-        
+
+def index_from_(grid):
+    names = ['dataset','kernel','model']
+    labels = [[i.name() for i in grid[key]] for key in names]
+    index  = pd.MultiIndex.from_product(labels, names=names)
+    return index
         
