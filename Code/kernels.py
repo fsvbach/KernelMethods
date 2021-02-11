@@ -87,7 +87,7 @@ class MismatchKernel(Kernel):
             return matrix.toarray()
 
         identifier = f"MismatchKernel_{A.name()}x{B.name()}_k={self.k}_m={self.m}"
-        matrix = compute_kernel_matrix()
+        matrix = cached(identifier,compute_kernel_matrix)
         return matrix 
 
 class GaussianKernel(Kernel):

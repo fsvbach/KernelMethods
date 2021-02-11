@@ -19,11 +19,11 @@ import pandas as pd
 ### SAVE PREDICTIONS ###
 
 # best models and kernels so far
-model  = [models.SVM(C) for C in [6,        #67.1%
-                                   13,      #72.1%
-                                   6]]      #75.0%
+model  = [models.SVM(C) for C in [4.5,        #67.1%
+                                   13.5,      #72.6%
+                                   6]]      #74.7%
 
-kernel = [kernels.MismatchKernel(11, 2, 2),
+kernel = [kernels.MismatchKernel(10, 2, 2),
             kernels.MismatchKernel(10, 2, 2),
             kernels.MismatchKernel(12, 2, 2)]
 
@@ -43,14 +43,14 @@ view = {'title' : 'model',
         'xaxis' : 'kernel'
         }
 
-# compute scores
-scores = util.cross_validation(grid, D=10)
+# # compute scores
+# scores = util.cross_validation(grid, D=10)
 
-# # if already computed
-# scores = pd.read_csv('Plots/scores.csv', index_col=[0,1,2])
+# # # if already computed
+# # scores = pd.read_csv('Plots/scores.csv', index_col=[0,1,2])
 
-# do the plot
-util.plot_cross_val(scores, view)
+# # do the plot
+# util.plot_cross_val(scores, view)
 
 
 
