@@ -22,7 +22,7 @@ util.save_predictions(model, kernel, training_data, test_data)
 ### PLOT CROSS VALIDATION ###
 
 grid = {'model': [models.our_SVM(C) for C in range(1,20)], 
-        'kernel': [kernels.MismatchKernel(10,2,2)], 
+        'kernel': [kernels.MismatchKernel(12,2,2)], 
         'dataset': training_data
         }
 
