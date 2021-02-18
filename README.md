@@ -7,9 +7,9 @@ To run our experiments, execute
 python3 experiments.py
 ```
 
-in this folder. Note, that only a representative sample expirment is submitted. However, any expirement we did throughout the challenge can be expressed in a succint manner using the versatile `util.cross_validation` function. It takes as input three arrays representing differnet models, kernels and training data respectively. `util.cross_valdiation` outputs a scores object that can be plotted using the `util.plot_cross_val` function. To classify test data use `util.save_predictions`.
+in this folder. Note, that only a representative sample experiment is submitted. However, any expirement we did throughout the challenge can be expressed in a succinct manner using the versatile `util.cross_validation` function. It takes as input three arrays representing different models, kernels and training data respectively. `util.cross_valdiation` outputs a scores object that can be plotted using the `util.plot_cross_val` function. To classify test data use `util.save_predictions`.
 
-For a usage sample see `experiments.py`. The repository contains cached kernel matrices for the mismtach kernel with k=10 and k=12.
+For a usage sample see `experiments.py`. The repository contains cached kernel matrices for the Mismatch kernel with k=10 and k=12 (m=4 in both cases).
 
 
 ### Build C++ libary
