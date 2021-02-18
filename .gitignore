@@ -2,3 +2,4 @@
 .spyproject
 Plots/*
 Predictions/*
+cache/*
