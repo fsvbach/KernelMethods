@@ -137,29 +137,6 @@ class WDKernel(Kernel):
         kernel_function = lambda seq1, seq2: cpp_functions.wd_kernel(seq1, seq2, k, len(seq1))
         return compute_kernel_matrix_elementwise(a.as_ctype_int_array(), b.as_ctype_int_array(), kernel_function, a == b)
 
-class WDShiftedKernel(Kernel):
-    def __init__(self, beta, S):
-        self.k = len(beta)
-        self.beta = beta
-        self.S = S
-    
-    def name(self):
-        return f"WDK_{self.k}_{self.S}"
-
-    def kernel_matrix(self, A, B):
-        result = np.zeros((len(A), len(B)))
-        for k in range(self.k):
-            if (self.beta[k] == 0): continue
-            identifier = f"WD_shifted_kernel_{A.name()}x{B.name()}_k={k}_S={self.S}"
-            matrix = cached(identifier, lambda: self.compute_kernel_matrix_for_k(A, B, k))
-            result = result + self.beta[k] * matrix
-        result = result / result.max()
-        return result
-
-    def compute_kernel_matrix_for_k(self, a, b, k):
-        kernel_function = lambda seq1, seq2: cpp_functions.wd_shifted(seq1, seq2, k, len(seq1), self.S)
-        return compute_kernel_matrix_elementwise(a.as_ctype_int_array(), b.as_ctype_int_array(), kernel_function, a == b)
-
 class SumKernel(Kernel):
     def __init__(self, kernels, weights):
         assert len(kernels) == len(weights)
