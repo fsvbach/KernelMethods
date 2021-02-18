@@ -1,56 +1,44 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 13 15:04:39 2021
-
-@author: fsvbach
-"""
-
 from Code import kernels, util, models, data
 import numpy as np
 import pandas as pd
 
 ### LOADING DATA ###
-
-# create data loader
 (training_data, test_data) = data.load_data()
 
 
 ### SAVE PREDICTIONS ###
 
 # best models and kernels so far
-model  = [models.SVM(C) for C in [6,        #67.1%
-                                   13,      #72.1%
-                                   6]]      #75.0%
+model  = [models.our_SVM(C) for C in [4.5, 13.5, 3.5]]      
 
-kernel = [kernels.MismatchKernel(11, 2, 2),
-            kernels.MismatchKernel(10, 2, 2),
-            kernels.MismatchKernel(12, 2, 2)]
+kernel = [kernels.MismatchKernel(10, 2, 2),
+          kernels.MismatchKernel(10, 2, 2),
+          kernels.MismatchKernel(10, 2, 2)]
 
 #save predictions
 util.save_predictions(model, kernel, training_data, test_data)
 
 
-### PLOT CROSS VAL ###
+### PLOT CROSS VALIDATION ###
 
-grid = {'model': [models.SVM(5), models.SVM(15)], 
-        'kernel': [kernels.MismatchKernel(k,1,1) for k in np.arange(4,13)], 
-        'dataset': training_data[:1]
+grid = {'model': [models.our_SVM(C) for C in range(1,20)], 
+        'kernel': [kernels.MismatchKernel(12,2,2)], 
+        'dataset': training_data
         }
 
-view = {'title' : 'model',
+view = {'title' : 'kernel',
         'legend': 'dataset',
-        'xaxis' : 'kernel'
+        'xaxis' : 'model'
         }
 
-# compute scores
-scores = util.cross_validation(grid, D=10)
+## compute scores
+# scores = util.cross_validation(grid, D=10)
 
-# # if already computed
+## load, if already computed
 # scores = pd.read_csv('Plots/scores.csv', index_col=[0,1,2])
 
-# do the plot
-util.plot_cross_val(scores, view)
+## do the plot
+# util.plot_cross_val(scores, view)
 
 
 

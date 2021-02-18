@@ -5,7 +5,7 @@ import os
 from itertools import combinations, product
 import matplotlib.pyplot as plt
 
-storage_folder_name = "cache/cluster"
+storage_folder_name = "cache"
 predictions_folder_name = "Predictions"
 plots_folder_name = "Plots"
 
@@ -18,7 +18,7 @@ def compute_spectrum(sequences, k, m = 0):
     spectrum = sp.dok_matrix((n, 4**k))
     mask = (1 << (2 * k)) - 1
     for i,seq in enumerate(sequences):
-        #print(f'...iteration {i+1} of {n}', end='\r')
+        print(f'...iteration {i+1} of {n}', end='\r')
         kmer = 0
         for j, c in enumerate(seq):
             kmer = ((kmer << 2) & mask) | c
@@ -71,7 +71,7 @@ def neighbourhood(kmer, k, m):
 def compute_kernel_matrix_elementwise(A, B, kernel_function, symmetric = False):
         matrix = np.zeros((len(A),len(B)))
         for i,a in enumerate(A):
-            #print(f'... iteration {i+1} of {len(A)}', end='\r')
+            print(f'... iteration {i+1} of {len(A)}', end='\r')
             for j,b in enumerate(B):
                 if not symmetric or j>=i: 
                     matrix[i,j] = kernel_function(a,b) 
@@ -103,7 +103,7 @@ def save_predictions(models, kernels, training_data, test_data):
     '''
 
     name = ''
-    for m,k in zip(models,kernels): name+='_'+m.name()+','+k.name()
+    for m,k in zip(models,kernels): name+='-('+m.name()+','+k.name()+')'
     filename = f'predictions{name}.csv'
         
     Y_list = []
@@ -143,7 +143,7 @@ def cross_validation(grid, D=10):
                 
                 score = 0
                 for d, idx in enumerate(indices):
-                    #print(f'... iteration {d+1} of {D}', end='\r')
+                    print(f'... iteration {d+1} of {D}', end='\r')
                     yte = y_train[idx]
                     ytr = np.delete(y_train, idx)
                     K   = np.delete(K_train, idx, 1)
